@@ -1,0 +1,96 @@
+<resources>
+    <!-- <string name="app_name">Calliope - Helper</string> -->
+    <string name="app_name" translatable="false">Calliope</string>
+
+    <!-- <string name="hello_world">Hello world!</string> -->
+    <string name="title_activity_home">HomeActivity</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_select_language">Language selection</string>
+    <string name="action_new_language">Add a new language</string>
+
+    <!-- <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string> -->
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string-array name="sections">
+        <item>Home</item>
+        <item>Store</item>
+        <item>Profiles</item>
+        <item>Data</item>
+        <!-- <item>Objects</item>
+        <item>Places</item>
+        <item>People</item>
+        <item>Modes</item> -->
+    </string-array>
+
+    <string-array name="sections_icons" translatable="false">
+        <item>@drawable/ic_home_white_24dp</item>
+        <item>@drawable/ic_shop_white_24dp</item>
+        <!-- <item>@drawable/ic_account_box_white_24dp</item>
+        <item>@drawable/ic_memory_white_24dp</item>
+        <item>@drawable/ic_place_white_24dp</item>
+        <item>@drawable/ic_person_white_24dp</item>
+        <item>@drawable/ic_settings_applications_white_24dp</item> -->
+        <item>@drawable/ic_person_white_24dp</item>
+        <item>@drawable/ic_save_white_24dp</item>
+    </string-array>
+
+    <string name="exit_activity">Are you sure you want to disconnect ?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+    <string name="text_field_hint">Text</string>
+    <string name="code_field_hint">Code</string>
+    <string name="name_field_hint">Name</string>
+    <string name="id_field_hint">ID</string>
+    <string name="login_field_hint">Login</string>
+    <string name="email_field_hint">E-mail</string>
+    <string name="password_field_hint">Password</string>
+    <string name="password_confirm_field_hint">Confirm password</string>
+
+    <string name="wifi_address_hint">Address</string>
+    <string name="wifi_port_hint">Port</string>
+    <string name="wifi_login_hint">Login</string>
+    <string name="wifi_password_hint">Password</string>
+    <string name="wifi_default_port" translatable="false">7980</string>
+    <string name="connection_type">Select the type of connection</string>
+    <!-- <string name="wifi_disabled">Please enable wifi to continue</string>
+    <string name="bluetooth_disabled">Please enable bluetooth to continue</string> -->
+    <string name="wifi_disabled">Please enable wifi to continue with this mode</string>
+    <string name="bluetooth_disabled">Please enable bluetooth to continue with this mode</string>
+    <string name="bonded_bluetooth_device">Bonded</string>
+
+    <string name="connection">Connection</string>
+    <string name="signup">Sign up</string>
+    <string name="save_data">Save</string>
+    <string name="back_message">Please click again to quit</string>
+    <string name="delete_profile_message">Delete this profile ?</string>
+    <string name="scan_devices">Scan for devices</string>
+    <string name="in_construction">In construction</string>
+    <string name="confirm_download">Download ?</string>
+
+    <string name="how_to_talk">Press then talk</string>
+
+    <string name="connection_section">Connection</string>
+    <string name="speech_section">Calliope</string>
+    <string name="store_section">Store</string>
+    <string name="profiles_section">Profiles</string>
+    <string name="data_section">Data</string>
+
+    <string-array name="profile_data_sections">
+        <item>Objects</item>
+        <item>Places</item>
+        <item>People</item>
+        <item>Modes</item>
+    </string-array>
+
+    <string name="profile_delete">Delete</string>
+    <string name="profile_select">Select</string>
+    <string name="profile_check">See</string>
+</resources>

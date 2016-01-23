@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- <string name="app_name">Calliope - Helper</string> -->
+
+    <!-- <string name="hello_world">Hello world!</string> -->
+    <string name="title_activity_home">HomeActivity</string>
+
+    <string name="action_settings">Paramètres</string>
+    <string name="action_save">Enregistrer</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_select_language">Choix de la langue</string>
+    <string name="action_new_language">Ajouter une langue</string>
+
+    <!-- <string name="title_section1">Accueil</string>
+    <string name="title_section2">Profile Store</string>
+    <string name="title_section3">Profils</string> -->
+
+    <string name="navigation_drawer_open">Ouvrir le volet de navigation</string>
+    <string name="navigation_drawer_close">Fermer le volet de navigation</string>
+
+    <string-array name="sections">
+        <item>Accueil</item>
+        <item>Store</item>
+        <item>Profils</item>
+        <item>Données</item>
+        <!-- <item>Objets</item>
+        <item>Lieux</item>
+        <item>Personnes</item>
+        <item>Modes</item> -->
+    </string-array>
+
+    <string name="exit_activity">Voulez-vous vous deconnecter ?</string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+
+    <string name="text_field_hint">Texte</string>
+    <string name="code_field_hint">Code</string>
+    <string name="name_field_hint">Nom</string>
+    <string name="id_field_hint">ID</string>
+    <string name="login_field_hint">Identifiant</string>
+    <string name="email_field_hint">E-mail</string>
+    <string name="password_field_hint">Mot de passe</string>
+    <string name="password_confirm_field_hint">Confirmer mot de passe</string>
+
+    <string name="wifi_address_hint">Adresse</string>
+    <string name="wifi_port_hint">Port</string>
+    <string name="wifi_login_hint">Identifiant</string>
+    <string name="wifi_password_hint">Mot de passe</string>
+    <string name="connection_type">Choisissez le type de connexion</string>
+    <!-- <string name="wifi_disabled">Veuillez activer le wi-fi pour continuer</string>
+    <string name="bluetooth_disabled">Veuillez activer le bluetooth pour continuer</string> -->
+    <string name="wifi_disabled">Activez le wi-fi pour continuer avec ce mode</string>
+    <string name="bluetooth_disabled">Activez le bluetooth pour continuer avec ce mode</string>
+    <string name="bonded_bluetooth_device">Appairé</string>
+
+    <string name="connection">Connexion</string>
+    <string name="signup">S\'enregistrer</string>
+    <string name="save_data">Enregistrer</string>
+    <string name="back_message">Appuyez à nouveau pour quitter</string>
+    <string name="delete_profile_message">Supprimer ce profil ?</string>
+    <string name="scan_devices">Rechercher des périphériques</string>
+    <string name="in_construction">En construction</string>
+    <string name="confirm_download">Télécharger ?</string>
+
+    <string name="how_to_talk">Appuyez puis parlez</string>
+
+    <string name="connection_section">Connexion</string>
+    <string name="speech_section">Calliope</string>
+    <string name="store_section">Store</string>
+    <string name="profiles_section">Profils</string>
+    <string name="data_section">Données</string>
+
+    <string-array name="profile_data_sections">
+        <item>Objets</item>
+        <item>Lieux</item>
+        <item>Personnes</item>
+        <item>Modes</item>
+    </string-array>
+
+    <string name="profile_delete">Supprimer</string>
+    <string name="profile_select">Activer</string>
+    <string name="profile_check">Voir</string>
+</resources>
