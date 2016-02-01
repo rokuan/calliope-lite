@@ -16,7 +16,7 @@ public abstract class ToolbarDrawerActivity extends AppCompatActivity implements
     @Bind(R.id.toolbar) protected Toolbar toolbar;
     @Bind(R.id.drawer_layout) protected DrawerLayout drawer;
 
-    private CharSequence mTitle;
+    //private CharSequence mTitle;
     private DrawerFragment mNavigationDrawerFragment;
 
     @Override
@@ -34,7 +34,7 @@ public abstract class ToolbarDrawerActivity extends AppCompatActivity implements
     }
 
     public void onSectionAttached(int number) {
-        mTitle = getResources().getStringArray(R.array.sections)[number - 1];
+        //mTitle = getResources().getStringArray(R.array.sections)[number - 1];
     }
 
     @Override

@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import apps.rokuan.com.calliope_helper_lite.R;
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import de.greenrobot.event.EventBus;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
@@ -60,7 +59,7 @@ public class DrawerFragment extends Fragment {
      * Helper component that ties the action bar to the navigation drawer.
      */
     private ActionBarDrawerToggle mDrawerToggle;
-    private Toolbar mToolBar;
+    //private Toolbar mToolBar;
 
     public static final int HOME_SECTION = 0;
     public static final int STORE_SECTION = 1;
@@ -152,7 +151,7 @@ public class DrawerFragment extends Fragment {
     public void setUp(int fragmentId, DrawerLayout drawerLayout, Toolbar toolbar) {
         mFragmentContainerView = getActivity().findViewById(fragmentId);
         mDrawerLayout = drawerLayout;
-        mToolBar = toolbar;
+        //mToolBar = toolbar;
 
         // set a custom shadow that overlays the main content when the drawer opens
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
@@ -178,7 +177,8 @@ public class DrawerFragment extends Fragment {
         mDrawerToggle = new ActionBarDrawerToggle(
                 getActivity(),                    /* host Activity */
                 mDrawerLayout,                    /* DrawerLayout object */
-                mToolBar,
+                //mToolBar,
+                toolbar,
                 R.string.navigation_drawer_open,  /* "open drawer" description for accessibility */
                 R.string.navigation_drawer_close  /* "close drawer" description for accessibility */
         ) {
@@ -271,10 +271,10 @@ public class DrawerFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         try {
-            mCallbacks = (NavigationDrawerCallbacks) activity;
+            mCallbacks = (NavigationDrawerCallbacks) context;
         } catch (ClassCastException e) {
             throw new ClassCastException("Activity must implement NavigationDrawerCallbacks.");
         }
@@ -335,11 +335,7 @@ public class DrawerFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+        return (mDrawerToggle.onOptionsItemSelected(item)) || super.onOptionsItemSelected(item);
     }
 
     /**
@@ -349,7 +345,7 @@ public class DrawerFragment extends Fragment {
     private void showGlobalContextActionBar() {
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+        //actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
         actionBar.setTitle(R.string.app_name);
     }
 

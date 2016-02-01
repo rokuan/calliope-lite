@@ -9,7 +9,6 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
-import com.j256.ormlite.stmt.Where;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.rokuan.calliopecore.fr.parser.SpeechParser;
@@ -172,9 +171,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             loadTimePrepositions(connectionSource);
             loadWayPrepositions(connectionSource);
             loadPurposePrepositions(connectionSource);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
     }
@@ -205,7 +202,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             public Word transform(String s) {
                 String[] fields = s.split(DATA_SEPARATOR);
                 String[] types = fields[1].split(",");
-                Set<Word.WordType> wordTypes = new HashSet<Word.WordType>();
+                Set<Word.WordType> wordTypes = new HashSet<>();
 
                 for(String ty: types){
                     wordTypes.add(Word.WordType.valueOf(ty));
@@ -445,7 +442,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             public PlacePreposition transform(String s) {
                 String[] fields = s.split(DATA_SEPARATOR);
                 String[] types = fields[2].split(",");
-                Set<PlaceAdverbial.PlaceType> prepTypes = new HashSet<PlaceAdverbial.PlaceType>();
+                Set<PlaceAdverbial.PlaceType> prepTypes = new HashSet<>();
 
                 for(String ty: types){
                     prepTypes.add(PlaceAdverbial.PlaceType.valueOf(ty));
@@ -464,7 +461,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             public TimePreposition transform(String s) {
                 String[] fields = s.split(DATA_SEPARATOR);
                 String[] types = fields[2].split(",");
-                Set<TimeAdverbial.TimeType> prepTypes = new HashSet<TimeAdverbial.TimeType>();
+                Set<TimeAdverbial.TimeType> prepTypes = new HashSet<>();
 
                 for(String ty: types){
                     prepTypes.add(TimeAdverbial.TimeType.valueOf(ty));
@@ -483,7 +480,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             public WayPreposition transform(String s) {
                 String[] fields = s.split(DATA_SEPARATOR);
                 String[] types = fields[2].split(",");
-                Set<WayAdverbial.WayType> prepTypes = new HashSet<WayAdverbial.WayType>();
+                Set<WayAdverbial.WayType> prepTypes = new HashSet<>();
 
                 for(String ty: types){
                     prepTypes.add(WayAdverbial.WayType.valueOf(ty));
@@ -502,7 +499,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             public PurposePreposition transform(String s) {
                 String[] fields = s.split(DATA_SEPARATOR);
                 String[] types = fields[2].split(",");
-                Set<PurposeAdverbial.PurposeType> prepTypes = new HashSet<PurposeAdverbial.PurposeType>();
+                Set<PurposeAdverbial.PurposeType> prepTypes = new HashSet<>();
 
                 for(String ty: types){
                     prepTypes.add(PurposeAdverbial.PurposeType.valueOf(ty));
@@ -651,10 +648,9 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
 
         try {
             Dao<T, String> dao = DaoManager.createDao(connectionSource, objectClass);
-            QueryBuilder builder = dao.queryBuilder();
+            QueryBuilder<T, String> builder = dao.queryBuilder();
             PreparedQuery<T> preparedQuery = builder.where().eq(columnName, queryString.replaceAll("'", "\\'")).prepare();
-            T result = dao.queryForFirst(preparedQuery);
-            return result;
+            return dao.queryForFirst(preparedQuery);
         } catch (SQLException e) {
             e.printStackTrace();
             return null;

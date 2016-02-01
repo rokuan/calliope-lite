@@ -14,6 +14,7 @@ import apps.rokuan.com.calliope_helper_lite.db.DatabaseEvent;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import de.greenrobot.event.EventBus;
+import de.greenrobot.event.Subscribe;
 
 
 public class LoadingActivity extends AppCompatActivity {
@@ -71,6 +72,7 @@ public class LoadingActivity extends AppCompatActivity {
         bus.unregister(this);
     }
 
+    @Subscribe
     public void onEvent(DatabaseEvent event){
         final String message = event.getMessage();
 

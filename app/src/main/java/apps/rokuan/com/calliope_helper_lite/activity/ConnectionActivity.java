@@ -14,16 +14,18 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 
-import javax.net.ssl.SSLSocket;
-
 import apps.rokuan.com.calliope_helper_lite.R;
+import apps.rokuan.com.calliope_helper_lite.result.TaskResult;
 import apps.rokuan.com.calliope_helper_lite.service.ConnectionService;
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -63,24 +65,51 @@ public class ConnectionActivity extends AppCompatActivity {
     };
     private Socket socket;
 
-    class SocketAsyncTask extends AsyncTask<String, Void, Boolean> {
-        private Socket s = null;
-
+    class SocketAsyncTask extends AsyncTask<String, Void, TaskResult<Socket>> {
         @Override
-        protected Boolean doInBackground(String... params) {
-            try {
-                s = new Socket(params[0], Integer.parseInt(params[1]));
-            } catch (IOException e) {
-                s = null;
-                return false;
-            }
+        protected TaskResult<Socket> doInBackground(String... params) {
+            Socket s = null;
+            String host = params[0];
+            int port = Integer.parseInt(params[1]);
+            String login = params[2];
+            String password = params[3];
+            OutputStream os;
+            InputStream is;
 
-            return true;
+            try {
+                s = new Socket(host, port);
+                os = s.getOutputStream();
+
+                os.write(login.length());
+                os.write(login.getBytes());
+                os.write(password.length());
+                os.write(password.getBytes());
+                os.flush();
+
+                is = s.getInputStream();
+                int response = is.read();
+
+                if(response == 'Y'){
+                    return new TaskResult<Socket>(s);
+                } else {
+                    s.close();
+                    return new TaskResult<Socket>(new RuntimeException("Unable to log in with the current credentials"));
+                }
+            } catch (IOException e) {
+                if (s != null) {
+                    try {
+                        s.close();
+                    } catch (IOException e1) {
+
+                    }
+                }
+                return new TaskResult<Socket>(e);
+            }
         }
 
         @Override
-        protected void onPostExecute(Boolean result){
-            onTryConnect(result, s);
+        protected void onPostExecute(TaskResult result){
+            onTryConnect(result);
         }
     }
 
@@ -132,26 +161,23 @@ public class ConnectionActivity extends AppCompatActivity {
     public void connect(){
         String addressText = addressView.getText().toString();
         String portText = portView.getText().toString();
+        String loginText = loginView.getText().toString();
+        String passwordText = passwordView.getText().toString();
 
-        if(addressText.isEmpty()){
+        if(addressText.isEmpty() || loginText.isEmpty() || passwordText.isEmpty()){
             // TODO:
             return;
         }
 
-        if(portText.isEmpty()){
-            // TODO:
-            return;
-        }
-
-        new SocketAsyncTask().execute(addressText, portText);
+        new SocketAsyncTask().execute(addressText, portText, loginText, passwordText);
     }
 
-    private void onTryConnect(boolean success, Socket s){
-        if(success) {
-            socket = s;
+    private void onTryConnect(TaskResult<Socket> result){
+        if(result.isOk()) {
+            socket = result.getResult();
             startAndBindService();
         } else {
-            Toast.makeText(this, "Une erreur est survenue", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, result.getError().getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 

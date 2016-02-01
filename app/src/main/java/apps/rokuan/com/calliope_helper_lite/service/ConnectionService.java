@@ -1,7 +1,6 @@
 package apps.rokuan.com.calliope_helper_lite.service;
 
 import android.app.Service;
-import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
