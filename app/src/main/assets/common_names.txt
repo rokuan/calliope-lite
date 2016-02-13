@@ -30788,7 +30788,7 @@ nomenklatura;_
 nome;_
 nomination;_
 nominations;_
-nom;_
+nom;NAME
 néo-mouvement;_
 noms;_
 non;_

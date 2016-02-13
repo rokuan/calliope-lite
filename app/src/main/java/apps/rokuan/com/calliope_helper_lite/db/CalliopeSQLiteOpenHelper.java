@@ -9,6 +9,7 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.SelectArg;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.rokuan.calliopecore.fr.parser.SpeechParser;
@@ -23,6 +24,7 @@ import com.rokuan.calliopecore.fr.sentence.CustomMode;
 import com.rokuan.calliopecore.fr.sentence.CustomObject;
 import com.rokuan.calliopecore.fr.sentence.CustomPerson;
 import com.rokuan.calliopecore.fr.sentence.CustomPlace;
+import com.rokuan.calliopecore.fr.sentence.FirstnameInfo;
 import com.rokuan.calliopecore.fr.sentence.LanguageInfo;
 import com.rokuan.calliopecore.fr.sentence.NameInfo;
 import com.rokuan.calliopecore.fr.sentence.PlaceInfo;
@@ -79,6 +81,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             CountryInfo.class,
             TransportInfo.class,
             UnitInfo.class,
+            FirstnameInfo.class,
             CharacterInfo.class,
             PlaceInfo.class
     };
@@ -98,6 +101,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             CountryInfo.COUNTRY_FIELD_NAME,
             TransportInfo.TRANSPORT_FIELD_NAME,
             UnitInfo.UNIT_FIELD_NAME,
+            FirstnameInfo.FIRSTNAME_FIELD_NAME,
             CharacterInfo.CHARACTER_FIELD_NAME,
             PlaceInfo.PLACE_FIELD_NAME
     };
@@ -128,6 +132,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             TableUtils.createTable(connectionSource, ColorInfo.class);
             TableUtils.createTable(connectionSource, TransportInfo.class);
             TableUtils.createTable(connectionSource, UnitInfo.class);
+            TableUtils.createTable(connectionSource, FirstnameInfo.class);
             TableUtils.createTable(connectionSource, CharacterInfo.class);
             TableUtils.createTable(connectionSource, PlaceInfo.class);
 
@@ -159,6 +164,8 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             loadUnits(connectionSource);
             defaultBus.post(new DatabaseEvent("Types de lieux"));
             loadPlaces(connectionSource);
+            defaultBus.post(new DatabaseEvent("Prénoms"));
+            loadFirstnames(connectionSource);
             defaultBus.post(new DatabaseEvent("Types de personnes"));
             loadCharacters(connectionSource);
             defaultBus.post(new DatabaseEvent("Verbes"));
@@ -312,6 +319,19 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
         loadData(connectionSource, UnitInfo.class, context, "units.txt", unitAdapter);
     }
 
+    private void loadFirstnames(ConnectionSource connectionSource) throws SQLException, IOException {
+        DataAdapter<FirstnameInfo> firstnameAdapter = new DataAdapter<FirstnameInfo>() {
+            @Override
+            public FirstnameInfo transform(String s) {
+                String[] fields = s.split(DATA_SEPARATOR);
+                // TODO: find a clean way to get the right letters in uppercase
+                return new FirstnameInfo(Character.toUpperCase(fields[0].charAt(0)) + fields[0].substring(1));
+            }
+        };
+
+        loadData(connectionSource, FirstnameInfo.class, context, "firstnames.txt", firstnameAdapter);
+    }
+
     private void loadCharacters(ConnectionSource connectionSource) throws SQLException, IOException {
         DataAdapter<CharacterInfo> characterAdapter = new DataAdapter<CharacterInfo>() {
             @Override
@@ -359,7 +379,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             @Override
             public Verb transform(String s) {
                 String[] fields = s.split(DATA_SEPARATOR);
-                boolean auxiliary = (Integer.parseInt(fields[3]) != 0);
+                boolean auxiliary = (Integer.parseInt(fields[1]) != 0);
 
                 return new Verb(fields[0], auxiliary);
             }
@@ -385,7 +405,6 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
 
                 }
                 try {
-                    //a = actionDao.queryForId(fields[1]);
                     PreparedQuery<Action> query = actionDao.queryBuilder()
                             .where()
                             .eq(Action.ACTION_FIELD_NAME, IAction.ActionType.valueOf(fields[1]))
@@ -395,7 +414,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
 
                 }
 
-                return new VerbAction(v, a);
+                return new VerbAction(v, a, Integer.parseInt(fields[2]) != 0);
             }
         };
 
@@ -589,6 +608,11 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
     }
 
     @Override
+    public FirstnameInfo findFirstnameInfo(String q) {
+        return queryFirst(this, FirstnameInfo.class, FirstnameInfo.FIRSTNAME_FIELD_NAME, q);
+    }
+
+    @Override
     public CharacterInfo findCharacterInfo(String q) {
         return queryFirst(this, CharacterInfo.class, CharacterInfo.CHARACTER_FIELD_NAME, q);
     }
@@ -649,7 +673,8 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
         try {
             Dao<T, String> dao = DaoManager.createDao(connectionSource, objectClass);
             QueryBuilder<T, String> builder = dao.queryBuilder();
-            PreparedQuery<T> preparedQuery = builder.where().eq(columnName, queryString.replaceAll("'", "\\'")).prepare();
+            SelectArg queryArg = new SelectArg(queryString);
+            PreparedQuery<T> preparedQuery = builder.where().eq(columnName, queryArg).prepare();
             return dao.queryForFirst(preparedQuery);
         } catch (SQLException e) {
             e.printStackTrace();
