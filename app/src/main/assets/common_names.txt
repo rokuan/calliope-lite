@@ -26578,8 +26578,8 @@ luminaires;_
 luminescence;_
 luminosité;_
 luminosités;_
-lumière;_
-lumières;_
+lumière;LIGHT
+lumières;LIGHT
 lump;_
 lunaire;_
 lunaison;_

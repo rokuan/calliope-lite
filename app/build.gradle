@@ -4,10 +4,6 @@ android {
     compileSdkVersion 23
     buildToolsVersion "23.0.0"
 
-    dexOptions {
-        javaMaxHeapSize "2g"
-    }
-
     defaultConfig {
         applicationId "apps.rokuan.com.eve_helper"
         minSdkVersion 9

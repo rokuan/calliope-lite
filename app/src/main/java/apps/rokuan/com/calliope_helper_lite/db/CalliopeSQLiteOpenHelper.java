@@ -24,12 +24,14 @@ import com.rokuan.calliopecore.fr.sentence.CustomMode;
 import com.rokuan.calliopecore.fr.sentence.CustomObject;
 import com.rokuan.calliopecore.fr.sentence.CustomPerson;
 import com.rokuan.calliopecore.fr.sentence.CustomPlace;
+import com.rokuan.calliopecore.fr.sentence.FieldProperty;
 import com.rokuan.calliopecore.fr.sentence.FirstnameInfo;
 import com.rokuan.calliopecore.fr.sentence.LanguageInfo;
 import com.rokuan.calliopecore.fr.sentence.NameInfo;
 import com.rokuan.calliopecore.fr.sentence.PlaceInfo;
 import com.rokuan.calliopecore.fr.sentence.PlacePreposition;
 import com.rokuan.calliopecore.fr.sentence.PurposePreposition;
+import com.rokuan.calliopecore.fr.sentence.StateProperty;
 import com.rokuan.calliopecore.fr.sentence.TimePreposition;
 import com.rokuan.calliopecore.fr.sentence.TransportInfo;
 import com.rokuan.calliopecore.fr.sentence.UnitInfo;
@@ -56,6 +58,7 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import de.greenrobot.event.EventBus;
 
@@ -125,6 +128,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             TableUtils.createTable(connectionSource, Word.class);
 
             TableUtils.createTable(connectionSource, NameInfo.class);
+            TableUtils.createTable(connectionSource, StateProperty.class);
             TableUtils.createTable(connectionSource, AdjectiveInfo.class);
             TableUtils.createTable(connectionSource, CityInfo.class);
             TableUtils.createTable(connectionSource, CountryInfo.class);
@@ -149,6 +153,7 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
             defaultBus.post(new DatabaseEvent("Mots"));
             loadWords(connectionSource);
             loadCommonNames(connectionSource);
+            loadStates(connectionSource);
             loadAdjectives(connectionSource);
             defaultBus.post(new DatabaseEvent("Pays"));
             loadCountries(connectionSource);
@@ -234,13 +239,29 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
         loadData(connectionSource, NameInfo.class, context, "common_names.txt", nameAdapter);
     }
 
+    private void loadStates(ConnectionSource connectionSource) throws IOException, SQLException {
+        DataAdapter<StateProperty> stateAdapter = new DataAdapter<StateProperty>() {
+            @Override
+            public StateProperty transform(String s) {
+                String[] fields = s.split(DATA_SEPARATOR);
+                return new StateProperty(fields[0], fields[1], fields[2]);
+            }
+        };
+
+        loadData(connectionSource, StateProperty.class, context, "states.txt", stateAdapter);
+    }
+
     private void loadAdjectives(ConnectionSource connectionSource) throws IOException, SQLException {
+        final CalliopeSQLiteOpenHelper that = this;
         DataAdapter<AdjectiveInfo> adjectiveAdapter = new DataAdapter<AdjectiveInfo>() {
             @Override
             public AdjectiveInfo transform(String s) {
                 String[] fields = s.split(DATA_SEPARATOR);
-                IAdjectiveInfo.AdjectiveValue value = "_".equals(fields[1]) ? IAdjectiveInfo.AdjectiveValue.UNDEFINED : IAdjectiveInfo.AdjectiveValue.valueOf(fields[1]);
-                return new AdjectiveInfo(fields[0], value);
+                //IAdjectiveInfo.AdjectiveValue value = "_".equals(fields[1]) ? IAdjectiveInfo.AdjectiveValue.UNDEFINED : IAdjectiveInfo.AdjectiveValue.valueOf(fields[1]);
+                FieldProperty field = "_".equals(fields[2]) ? null : new FieldProperty(fields[2]);
+                StateProperty state = "_".equals(fields[3]) ? null : queryFirst(that, StateProperty.class, StateProperty.STATE_FIELD_NAME, fields[3]);
+
+                return new AdjectiveInfo(fields[0], field, state);
             }
         };
 
@@ -357,17 +378,17 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper implements
     }
 
     private void loadActions(ConnectionSource connectionSource) throws IOException, SQLException {
+        final CalliopeSQLiteOpenHelper that = this;
+
         DataAdapter<Action> actionAdapter = new DataAdapter<Action>() {
             @Override
             public Action transform(String s) {
                 String[] fields = s.split(DATA_SEPARATOR);
                 IAction.ActionType action = IAction.ActionType.valueOf(fields[0]);
+                FieldProperty field = ("_".equals(fields[1])) ? null : new FieldProperty(fields[1]);
+                StateProperty state = ("_".equals(fields[2])) ? null : queryFirst(that, StateProperty.class, StateProperty.STATE_FIELD_NAME, fields[2]);
 
-                if(fields.length > 1){
-                    return new Action(action, fields[1]);
-                } else {
-                    return new Action(action);
-                }
+                return new Action(action, field, state);
             }
         };
 
