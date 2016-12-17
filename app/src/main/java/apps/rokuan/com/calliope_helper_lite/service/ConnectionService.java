@@ -17,7 +17,7 @@ import java.net.Socket;
 public class ConnectionService extends Service {
     public static final int BLUETOOTH_CONNECTION = 0;
     public static final int INTERNET_CONNECTION = 1;
-    public static final int JSON_MESSAGE = 2;
+    public static final int TEXT_MESSAGE = 2;
     //public static final int DISCONNECTION = 3;
     public static final int EXIT = 4;
 
@@ -31,19 +31,19 @@ public class ConnectionService extends Service {
                     break;
                 /*case DISCONNECTION:
                     break;*/
-                case JSON_MESSAGE:
+                case TEXT_MESSAGE:
                     if(socket != null){
-                        byte[] jsonData = ((String)msg.obj).getBytes();
-                        byte[] jsonLength = new byte[4];
+                        byte[] data = ((String)msg.obj).getBytes();
+                        byte[] length = new byte[4];
 
-                        jsonLength[0] = (byte)jsonData.length;
-                        jsonLength[1] = (byte)(jsonData.length >> 8);
-                        jsonLength[2] = (byte)(jsonData.length >> 16);
-                        jsonLength[3] = (byte)(jsonData.length >> 24);
+                        length[0] = (byte)data.length;
+                        length[1] = (byte)(data.length >> 8);
+                        length[2] = (byte)(data.length >> 16);
+                        length[3] = (byte)(data.length >> 24);
 
                         try {
-                            socket.write(jsonLength, 0, jsonLength.length);
-                            socket.write(jsonData, 0, jsonData.length);
+                            socket.write(length, 0, length.length);
+                            socket.write(data, 0, data.length);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

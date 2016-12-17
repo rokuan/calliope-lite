@@ -2,6 +2,8 @@
     <!-- <string name="app_name">Calliope - Helper</string> -->
     <string name="app_name" translatable="false">Calliope</string>
 
+    <string name="assets_url" translatable="false">https://</string>
+
     <!-- <string name="hello_world">Hello world!</string> -->
     <string name="title_activity_home">HomeActivity</string>
 
@@ -54,18 +56,19 @@
     <string name="password_field_hint">Password</string>
     <string name="password_confirm_field_hint">Confirm password</string>
 
+    <string name="wifi_server_label">Server</string>
     <string name="wifi_address_hint">Address</string>
     <string name="wifi_port_hint">Port</string>
     <string name="wifi_login_hint">Login</string>
     <string name="wifi_password_hint">Password</string>
     <string name="wifi_default_port" translatable="false">7980</string>
-    <string name="ldap_default_port" translatable="false">389</string>
     <string name="connection_type">Select the type of connection</string>
     <!-- <string name="wifi_disabled">Please enable wifi to continue</string>
     <string name="bluetooth_disabled">Please enable bluetooth to continue</string> -->
     <string name="wifi_disabled">Please enable wifi to continue with this mode</string>
     <string name="bluetooth_disabled">Please enable bluetooth to continue with this mode</string>
     <string name="bonded_bluetooth_device">Bonded</string>
+    <string name="connection_required">A connection is required. The application will now leave</string>
 
     <string name="connection">Connection</string>
     <string name="signup">Sign up</string>

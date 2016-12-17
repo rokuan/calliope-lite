@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "apps.rokuan.com.eve_helper"
-        minSdkVersion 9
+        minSdkVersion 11
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -20,7 +20,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:cardview-v7:23.1.1'
@@ -35,12 +34,6 @@ dependencies {
     compile 'com.nhaarman.listviewanimations:lib-manipulation:3.1.0@aar'
     compile 'com.nhaarman.listviewanimations:lib-core-slh:3.1.0@aar'
     compile 'com.squareup.picasso:picasso:2.5.2'
-    //compile files('libs/calliope-core-fr.jar')
-    //compile files('libs/calliope-core.jar')
-    //compile 'org.apache.directory.api:api-all:1.0.0-M33'
-    compile 'com.j256.ormlite:ormlite-android:4.48'
-    compile 'com.google.code.gson:gson:2.5'
     compile 'de.greenrobot:eventbus:3.0.0-beta1'
-    compile 'com.squareup.retrofit2:retrofit:2.0.0-beta3'
-    //compile 'com.unboundid:unboundid-ldapsdk:3.1.0'
+    compile 'com.j256.ormlite:ormlite-android:4.48'
 }

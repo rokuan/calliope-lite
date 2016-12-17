@@ -1,16 +1,18 @@
 package apps.rokuan.com.calliope_helper_lite.activity;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.TextView;
 
 import apps.rokuan.com.calliope_helper_lite.R;
-import apps.rokuan.com.calliope_helper_lite.db.CalliopeSQLiteOpenHelper;
 import apps.rokuan.com.calliope_helper_lite.db.DatabaseEvent;
+import apps.rokuan.com.calliope_helper_lite.util.Utils;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import de.greenrobot.event.EventBus;
@@ -31,9 +33,12 @@ public class LoadingActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... params) {
-            CalliopeSQLiteOpenHelper db = new CalliopeSQLiteOpenHelper(activity);
-            db.getReadableDatabase();
-            db.close();
+            // TODO:
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+
+            }
             return null;
         }
 
@@ -58,7 +63,21 @@ public class LoadingActivity extends AppCompatActivity {
     @Override
     protected void onStart(){
         super.onStart();
-        new DatabaseLoadingAsyncTask(this).execute();
+
+        if(Utils.isConnectionAvailable(this)){
+            new DatabaseLoadingAsyncTask(this).execute();
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(R.string.connection_required)
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            System.exit(0);
+                        }
+                    });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
     }
 
     @Override

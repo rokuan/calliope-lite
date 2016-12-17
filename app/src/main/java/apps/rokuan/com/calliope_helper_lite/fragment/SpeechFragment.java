@@ -4,7 +4,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Message;
@@ -14,23 +13,24 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.nhaarman.listviewanimations.appearance.simple.SwingBottomInAnimationAdapter;
+import com.nhaarman.listviewanimations.itemmanipulation.DynamicListView;
+import com.nhaarman.listviewanimations.util.Insertable;
 import com.nineoldandroids.animation.Animator;
-import com.rokuan.calliopecore.sentence.structure.InterpretationObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import apps.rokuan.com.calliope_helper_lite.R;
-import apps.rokuan.com.calliope_helper_lite.db.CalliopeSQLiteOpenHelper;
 import apps.rokuan.com.calliope_helper_lite.service.ConnectionService;
 import apps.rokuan.com.calliope_helper_lite.view.SoundLevelView;
 import butterknife.Bind;
@@ -41,23 +41,14 @@ import butterknife.OnClick;
  * Created by LEBEAU Christophe on 17/07/15.
  */
 public class SpeechFragment extends Fragment implements RecognitionListener {
-    /*public static final int SPEECH_FRAME = 0;
-    public static final int SOUND_FRAME = 1;
-    public static final int PARSE_FRAME = 2;
-    public static final int TEXT_FRAME = 3;
-    public static final int RESULT_FRAME = 4;
-    public static final int FIRST_FRAME = 5;*/
     public static final int FIRST_FRAME = 0;
     public static final int SOUND_FRAME = 1;
     public static final int PARSE_FRAME = 2;
     public static final int TEXT_FRAME = 3;
     public static final int RESULT_FRAME = 4;
 
-    //public static final int INPUT_TYPE_FRAME = SPEECH_FRAME;
-
     private SpeechRecognizer speech;
     private Intent recognizerIntent;
-    private CalliopeSQLiteOpenHelper db;
 
     private boolean bound = false;
     private Messenger serviceMessenger;
@@ -74,12 +65,14 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
             bound = false;
         }
     };
+    private CommandAdapter adapter;
 
     @Bind(R.id.speech_button) protected FloatingActionButton speechButton;
     @Bind(R.id.first_frame) protected View firstFrame;
     @Bind(R.id.result_frame_content) protected View resultContent;
-    @Bind(R.id.recognized_text) protected TextView resultText;
-    @Bind(R.id.object_json) protected TextView jsonText;
+    //@Bind(R.id.recognized_text) protected TextView resultText;
+    @Bind(R.id.messages) protected DynamicListView messages;
+    //@Bind(R.id.object_json) protected TextView jsonText;
     @Bind(R.id.input_command) protected EditText commandText;
     @Bind(R.id.sound_view) protected SoundLevelView soundView;
     //@Bind({ R.id.speech_frame, R.id.sound_frame, R.id.parse_frame, R.id.text_frame, R.id.result_frame, R.id.first_frame }) protected List<View> frames;
@@ -105,9 +98,15 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState){
         View mainView = inflater.inflate(R.layout.fragment_speech, parent, false);
         ButterKnife.bind(this, mainView);
-        //switchToFrame(SPEECH_FRAME);
-        //switchToFrame(TEXT_FRAME);
-        //switchToFrame(INPUT_TYPE_FRAME);
+        adapter = new CommandAdapter(this.getContext(), new ArrayList<String>());
+        messages.setAdapter(adapter);
+        messages.disableDragAndDrop();
+        messages.disableSwipeToDismiss();
+        SwingBottomInAnimationAdapter animAdapter = new SwingBottomInAnimationAdapter(adapter);
+        animAdapter.setAbsListView(messages);
+        assert animAdapter.getViewAnimator() != null;
+        animAdapter.getViewAnimator().setInitialDelayMillis(100);
+        messages.setAdapter(animAdapter);
         return mainView;
     }
 
@@ -115,10 +114,12 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
     public void onResume(){
         super.onResume();
 
-        speech = SpeechRecognizer.createSpeechRecognizer(this.getActivity());
-        speech.setRecognitionListener(this);
+        if(SpeechRecognizer.isRecognitionAvailable(this.getActivity())){
+            speech = SpeechRecognizer.createSpeechRecognizer(this.getActivity());
+            speech.setRecognitionListener(this);
+        } else {
 
-        db = new CalliopeSQLiteOpenHelper(this.getActivity());
+        }
 
         Intent serviceIntent = new Intent(this.getActivity().getApplicationContext(), ConnectionService.class);
         this.getActivity().bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
@@ -133,11 +134,6 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
         if(speech != null){
             speech.destroy();
             speech = null;
-        }
-
-        if(db != null){
-            db.close();
-            db = null;
         }
     }
 
@@ -209,9 +205,11 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
     }
 
     private void startListening(){
-        System.out.println("Speech start");
-        soundView.resetLevel();
-        speech.startListening(recognizerIntent);
+        if(speech != null) {
+            System.out.println("Speech start");
+            soundView.resetLevel();
+            speech.startListening(recognizerIntent);
+        }
     }
 
     private void switchBetweenFrames(int fromFrame, int toFrame){
@@ -421,7 +419,6 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
 
     @Override
     public void onRmsChanged(float rmsdB) {
-        //Log.i("SpeechFragment", "Speech rms: " + rmsdB + "db");
         soundView.setLevel((int)rmsdB);
     }
 
@@ -443,58 +440,23 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
     @Override
     public void onResults(Bundle results) {
         ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-
         String result = data.get(0);
         startProcess(result);
     }
 
     private void startProcess(String command){
-        InterpretationObject object = null;
         String rightPart = command.length() > 1 ? command.substring(1) : "";
-
         switchToFrame(PARSE_FRAME);
+        messages.insert(adapter.getCount(), Character.toUpperCase(command.charAt(0)) + rightPart);
 
         try {
-            long start = System.currentTimeMillis();
-            object = db.parseText(command);
-            long end = System.currentTimeMillis();
-            Log.i("ParseTime", (end - start) + "ms");
-        }catch(Exception e) {
-            e.printStackTrace();
+            Message message = Message.obtain(null, ConnectionService.TEXT_MESSAGE, command);
+            serviceMessenger.send(message);
+        } catch(Exception e) {
+
         }
 
-        //switchToFrame(SPEECH_FRAME);
-        //switchToFrame(TEXT_FRAME);
-        //switchToFrame(INPUT_TYPE_FRAME);
-
-        resultText.setText(Character.toUpperCase(command.charAt(0)) + rightPart);
-
-        if(object != null) {
-            long jsonStart =  System.currentTimeMillis();
-            String json = InterpretationObject.toJSON(object);
-            long jsonEnd = System.currentTimeMillis();
-            Log.i("JsonTime", (jsonEnd - jsonStart) + "ms");
-            jsonText.setText(json);
-
-            try {
-                Message jsonMessage = Message.obtain(null, ConnectionService.JSON_MESSAGE, json);
-                serviceMessenger.send(jsonMessage);
-            }catch(Exception e) {
-
-            }
-        } else {
-            jsonText.setText("ERROR");
-        }
-
-        //switchToFrame(SPEECH_FRAME);
-        //switchToFrame(TEXT_FRAME);
-        //switchToFrame(INPUT_TYPE_FRAME);
-        //switchBetweenFrames(PARSE_FRAME, RESULT_FRAME);
-        //speechButton.clearAnimation();
         switchBetweenFrames(PARSE_FRAME, RESULT_FRAME);
-        /*switchToFrame(RESULT_FRAME);
-        frames.get(SPEECH_FRAME).setVisibility(View.VISIBLE);
-        YoYo.with(Techniques.SlideInUp).playOn(resultContent);*/
     }
 
     @Override
@@ -505,5 +467,33 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
     @Override
     public void onEvent(int eventType, Bundle params) {
 
+    }
+
+    class CommandAdapter extends ArrayAdapter<String> implements Insertable<String> {
+        private LayoutInflater inflater;
+
+        public CommandAdapter(Context context, List<String> objects) {
+            super(context, R.layout.command_item, objects);
+            inflater = LayoutInflater.from(context);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+
+            if(v == null){
+                v = inflater.inflate(R.layout.command_item, parent, false);
+            }
+
+            TextView messageContent = (TextView)v.findViewById(R.id.command_item_text);
+            messageContent.setText(this.getItem(position));
+
+            return v;
+        }
+
+        @Override
+        public void add(int index, String item) {
+            this.add(item);
+        }
     }
 }

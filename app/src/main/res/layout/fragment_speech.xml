@@ -5,8 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center_horizontal"
-    tools:context="apps.rokuan.com.calliope_helper_lite.activity.SpeechActivity$PlaceholderFragment">
+    android:gravity="center_horizontal">
     <LinearLayout
         android:id="@+id/result_frame"
         android:layout_width="match_parent"
@@ -21,13 +20,9 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1">
-            <TextView
-                android:id="@+id/object_json"
-                android:background="@color/primary_color"
+            <!-- <ListView
+                android:id="@+id/messages"
                 android:padding="5dp"
-                android:textColor="#FFFFFF"
-                android:ellipsize="end"
-                android:gravity="center"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
@@ -41,7 +36,13 @@
                 android:padding="5dp"
                 android:ellipsize="end"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content" /> -->
+            <com.nhaarman.listviewanimations.itemmanipulation.DynamicListView
+                android:id="@+id/messages"
+                android:padding="5dp"
+                android:divider="@null"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/speech_frame"

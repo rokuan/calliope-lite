@@ -80,4 +80,5 @@
     <string name="profile_delete">Supprimer</string>
     <string name="profile_select">Activer</string>
     <string name="profile_check">Voir</string>
+    <string name="connection_required">Une connexion est requise. L\'application va se fermer</string>
 </resources>

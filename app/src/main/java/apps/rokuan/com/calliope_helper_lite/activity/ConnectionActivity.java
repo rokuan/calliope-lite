@@ -13,18 +13,26 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.List;
 
 import apps.rokuan.com.calliope_helper_lite.R;
+import apps.rokuan.com.calliope_helper_lite.db.CalliopeSQLiteOpenHelper;
+import apps.rokuan.com.calliope_helper_lite.db.model.Server;
 import apps.rokuan.com.calliope_helper_lite.result.TaskResult;
 import apps.rokuan.com.calliope_helper_lite.service.ConnectionService;
 import butterknife.Bind;
@@ -36,10 +44,12 @@ import butterknife.OnClick;
  */
 public class ConnectionActivity extends AppCompatActivity {
     @Bind(R.id.wifi_disabled_frame) protected View disabledWifiFrame;
-    @Bind(R.id.wifi_address) protected EditText addressView;
-    @Bind(R.id.wifi_port) protected EditText portView;
+    @Bind(R.id.wifi_server) protected Spinner serverView;
     @Bind(R.id.wifi_login) protected EditText loginView;
     @Bind(R.id.wifi_password) protected EditText passwordView;
+
+    private CalliopeSQLiteOpenHelper db;
+    private ServerAdapter serverAdapter;
 
     private boolean bound = false;
     private Messenger serviceMessenger;
@@ -65,14 +75,15 @@ public class ConnectionActivity extends AppCompatActivity {
     };
     private Socket socket;
 
-    class SocketAsyncTask extends AsyncTask<String, Void, TaskResult<Socket>> {
+    class SocketAsyncTask extends AsyncTask<Object, Void, TaskResult<Socket>> {
         @Override
-        protected TaskResult<Socket> doInBackground(String... params) {
+        protected TaskResult<Socket> doInBackground(Object... params) {
             Socket s = null;
-            String host = params[0];
-            int port = Integer.parseInt(params[1]);
-            String login = params[2];
-            String password = params[3];
+            Server server = (Server)params[0];
+            String host = server.getHost();
+            int port = server.getPort();
+            String login = params[1].toString();
+            String password = params[2].toString();
             OutputStream os;
             InputStream is;
 
@@ -132,6 +143,28 @@ public class ConnectionActivity extends AppCompatActivity {
         }
     };
 
+    private class ServerAdapter extends ArrayAdapter<Server> {
+        public ServerAdapter(Context context, List<Server> objects) {
+            super(context, R.layout.server_item, objects);
+        }
+
+        @NonNull
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            Server s = getItem(position);
+
+            if(v == null){
+                v = LayoutInflater.from(getContext()).inflate(R.layout.server_item, parent, false);
+            }
+
+            TextView serverName = (TextView)v.findViewById(R.id.server_item_name);
+            serverName.setText(s.getName());
+
+            return v;
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -144,6 +177,8 @@ public class ConnectionActivity extends AppCompatActivity {
     public void onResume(){
         super.onResume();
 
+        db = new CalliopeSQLiteOpenHelper(this);
+
         if(isWifiEnabled()){
             disabledWifiFrame.setVisibility(View.INVISIBLE);
         }
@@ -154,22 +189,33 @@ public class ConnectionActivity extends AppCompatActivity {
     @Override
     public void onPause(){
         super.onPause();
+
+        if(db != null){
+            db.close();
+            db = null;
+        }
+
         this.unregisterReceiver(wifiState);
     }
 
     @OnClick(R.id.wifi_connect)
     public void connect(){
-        String addressText = addressView.getText().toString();
-        String portText = portView.getText().toString();
+        int selectedPosition = serverView.getSelectedItemPosition();
+
+        if(selectedPosition < 0){
+            return;
+        }
+
+        Server s = serverAdapter.getItem(selectedPosition);
         String loginText = loginView.getText().toString();
         String passwordText = passwordView.getText().toString();
 
-        if(addressText.isEmpty() || loginText.isEmpty() || passwordText.isEmpty()){
+        if(loginText.isEmpty() || passwordText.isEmpty()){
             // TODO:
             return;
         }
 
-        new SocketAsyncTask().execute(addressText, portText, loginText, passwordText);
+        new SocketAsyncTask().execute(s, loginText, passwordText);
     }
 
     private void onTryConnect(TaskResult<Socket> result){
