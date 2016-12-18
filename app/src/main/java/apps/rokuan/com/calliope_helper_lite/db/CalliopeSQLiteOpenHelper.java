@@ -2,7 +2,6 @@ package apps.rokuan.com.calliope_helper_lite.db;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
@@ -42,15 +41,19 @@ public class CalliopeSQLiteOpenHelper extends OrmLiteSqliteOpenHelper {
 
     }
 
-    public <T> boolean upsert(T o){
+    public <T> boolean upsert(T o, Class<T> clazz){
         try {
-            Dao<T, String> dao = DaoManager.createDao(this.getConnectionSource(), o.getClass());
+            Dao<T, String> dao = DaoManager.createDao(this.getConnectionSource(), clazz);
             dao.createOrUpdate(o);
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public boolean upsert(Server s){
+        return upsert(s, Server.class);
     }
 
     public <T> List<T> queryAll(Class<T> clazz){

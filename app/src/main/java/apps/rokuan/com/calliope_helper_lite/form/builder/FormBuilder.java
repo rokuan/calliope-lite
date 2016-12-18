@@ -2,6 +2,7 @@ package apps.rokuan.com.calliope_helper_lite.form.builder;
 
 import android.content.Context;
 import android.view.View;
+import android.widget.LinearLayout;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -9,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import apps.rokuan.com.calliope_helper_lite.form.annotations.Excluded;
 import apps.rokuan.com.calliope_helper_lite.form.annotations.GridFormField;
 import apps.rokuan.com.calliope_helper_lite.form.annotations.ListFormField;
 import apps.rokuan.com.calliope_helper_lite.form.annotations.SpinnerFormField;
@@ -20,15 +22,8 @@ import apps.rokuan.com.calliope_helper_lite.util.TypeUtils;
  */
 
 public class FormBuilder {
-    private Context context;
-    private List<FormElement> elements = new ArrayList<FormElement>();
+    public FormBuilder(){
 
-    private FormBuilder(Context c){
-        context = c;
-    }
-
-    public static FormBuilder from(Context context){
-        return new FormBuilder(context);
     }
 
     public ObjectForm build(Object o) {
@@ -37,10 +32,13 @@ public class FormBuilder {
         }
 
         Class<?> c = o.getClass();
-        ObjectForm form = new ObjectForm();
+        List<FormElement> elements = new ArrayList<>();
 
-        for(Field f: c.getFields()){
-            if(f.isAnnotationPresent(SpinnerFormField.class)){
+        for(Field f: c.getDeclaredFields()){
+            Class<?> t = f.getType();
+            if(f.isAnnotationPresent(Excluded.class)){
+                // Nothing to do
+            } else if(f.isAnnotationPresent(SpinnerFormField.class)){
                 elements.add(buildSpinnerFormElement(o, f));
             } else if(f.getType().isArray()){
                 elements.add(buildIterableFormElement(o, f));
@@ -57,7 +55,7 @@ public class FormBuilder {
             }
         }
 
-        return form;
+        return new ObjectForm(elements);
     }
 
     private final <T> AttributeAccessor<T> getAccessor(Object o, Field f){
@@ -132,9 +130,9 @@ public class FormBuilder {
         }
 
         if(f.getType().isArray()){
-            return new GridFormElement(context, f.getName(), getArrayAccessor(o, f), annotation);
+            return new GridFormElement(f.getName(), getArrayAccessor(o, f), annotation);
         } else {
-            return new GridFormElement(context, f.getName(), getListAccessor(o, f), annotation);
+            return new GridFormElement(f.getName(), getListAccessor(o, f), annotation);
         }
     }
 
@@ -146,9 +144,9 @@ public class FormBuilder {
         }
 
         if(f.getType().isArray()){
-            return new ListFormElement(context, f.getName(), getArrayAccessor(o, f), annotation);
+            return new ListFormElement(f.getName(), getArrayAccessor(o, f), annotation);
         } else {
-            return new ListFormElement(context, f.getName(), getListAccessor(o, f), annotation);
+            return new ListFormElement(f.getName(), getListAccessor(o, f), annotation);
         }
     }
 
@@ -162,45 +160,59 @@ public class FormBuilder {
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
-        return new SpinnerFormElement(context, f.getName(), accessor, valuesAccessor, annotation);
+        return new SpinnerFormElement(f.getName(), accessor, valuesAccessor, annotation);
     }
 
     private final StringFormElement buildStringFormElement(Object o, Field f){
         AttributeAccessor<String> accessor = getAccessor(o, f);
         if(f.isAnnotationPresent(StringFormField.class)){
             StringFormField annotation = f.getAnnotation(StringFormField.class);
-            return new StringFormElement(context, f.getName(), accessor, annotation);
+            return new StringFormElement(f.getName(), accessor, annotation);
         } else {
-            return new StringFormElement(context, f.getName(), accessor);
+            return new StringFormElement(f.getName(), accessor);
         }
     }
 
     private final CheckboxFormElement buildBooleanFormElement(Object o, Field f){
         AttributeAccessor<Boolean> accessor = getAccessor(o, f);
-        return new CheckboxFormElement(context, f.getName(), accessor);
+        return new CheckboxFormElement(f.getName(), accessor);
     }
 
     private final NumberFormElement buildNumberFormElement(Object o, Field f){
         AttributeAccessor<Integer> accessor = getAccessor(o, f);
-        return new NumberFormElement(context, f.getName(), accessor);
-    }
-
-    public boolean validate(){
-        for(FormElement e: elements){
-            if(!e.isValid()){
-                return false;
-            }
-        }
-        return true;
+        return new NumberFormElement(f.getName(), accessor);
     }
 
     interface FormElement {
         boolean isValid();
-        View getView();
+        View getView(Context context);
     }
 
-    class ObjectForm {
+    static public class ObjectForm {
         private List<FormElement> elements = new ArrayList<FormElement>();
+
+        private ObjectForm(List<FormElement> e){
+            elements.addAll(e);
+        }
+
+        public boolean validate(){
+            for(FormElement e: elements){
+                if(!e.isValid()){
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public View render(Context context){
+            LinearLayout l = new LinearLayout(context);
+            l.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            l.setOrientation(LinearLayout.VERTICAL);
+            for(FormElement e: elements){
+                l.addView(e.getView(context));
+            }
+            return l;
+        }
     }
 
     static public class AttributeAccessor<T> {

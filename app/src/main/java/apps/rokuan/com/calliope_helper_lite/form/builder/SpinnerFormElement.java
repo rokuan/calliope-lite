@@ -1,15 +1,11 @@
 package apps.rokuan.com.calliope_helper_lite.form.builder;
 
 import android.content.Context;
-import android.database.DataSetObserver;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,41 +15,40 @@ import apps.rokuan.com.calliope_helper_lite.form.annotations.SpinnerFormField;
  * Created by LEBEAU Christophe on 18/12/2016.
  */
 
-public class SpinnerFormElement extends Spinner implements FormBuilder.FormElement {
+public class SpinnerFormElement implements FormBuilder.FormElement {
     private SpinnerFormField annotation;
     private FormBuilder.AttributeAccessor accessor;
     private FormBuilder.ListAttributeAccessor possibleValues;
+    private Spinner view;
 
-    public SpinnerFormElement(Context context, String n, FormBuilder.AttributeAccessor a, FormBuilder.ListAttributeAccessor m) {
-        this(context, n, a, m, null);
+    public SpinnerFormElement(String n, FormBuilder.AttributeAccessor a, FormBuilder.ListAttributeAccessor m) {
+        this(n, a, m, null);
     }
 
-    public SpinnerFormElement(Context context, String n, FormBuilder.AttributeAccessor a, FormBuilder.ListAttributeAccessor m, SpinnerFormField f) {
-        super(context);
+    public SpinnerFormElement(String n, FormBuilder.AttributeAccessor a, FormBuilder.ListAttributeAccessor m, SpinnerFormField f) {
         accessor = a;
         annotation = f;
         possibleValues = m;
-        initView();
     }
 
-    private final void initView(){
+    private final void initView(Context context){
         List<Object> values;
         if(possibleValues != null){
             values = possibleValues.get();
         } else {
             values = new ArrayList<>();
         }
-        setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, values));
+        view.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_list_item_1, values));
         Object initialValue = accessor.get();
         if(initialValue != null) {
             int selectedIndex = values.indexOf(accessor.get());
             if(selectedIndex != -1){
-                setSelection(selectedIndex);
+                view.setSelection(selectedIndex);
             }
         } else if(!values.isEmpty()){
             accessor.set(values.get(0));
         }
-        setOnItemSelectedListener(new OnItemSelectedListener() {
+        view.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 accessor.set(adapterView.getSelectedItem());
@@ -71,14 +66,18 @@ public class SpinnerFormElement extends Spinner implements FormBuilder.FormEleme
         if(annotation == null){
             return true;
         }
-        if(annotation.mandatory() && getSelectedItemPosition() == -1){
+        if(annotation.mandatory() && accessor.get() == null){
             return false;
         }
         return true;
     }
 
     @Override
-    public View getView() {
-        return this;
+    public View getView(Context context) {
+        if(view == null){
+            view = new Spinner(context);
+            initView(context);
+        }
+        return view;
     }
 }

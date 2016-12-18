@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -145,12 +146,26 @@ public class ConnectionActivity extends AppCompatActivity {
 
     private class ServerAdapter extends ArrayAdapter<Server> {
         public ServerAdapter(Context context, List<Server> objects) {
-            super(context, R.layout.server_item, objects);
+            super(context, android.R.layout.simple_list_item_1, objects);
         }
 
         @NonNull
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
+            TextView v = (TextView)convertView;
+            Server s = getItem(position);
+
+            if(v == null){
+                v = new TextView(getContext());
+            }
+            v.setText(s.getName());
+            v.setTextColor(Color.BLACK);
+
+            return v;
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, ViewGroup parent) {
             View v = convertView;
             Server s = getItem(position);
 
@@ -160,6 +175,8 @@ public class ConnectionActivity extends AppCompatActivity {
 
             TextView serverName = (TextView)v.findViewById(R.id.server_item_name);
             serverName.setText(s.getName());
+            TextView addressInfo = (TextView)v.findViewById(R.id.server_item_address);
+            addressInfo.setText(s.getHost() + " - " + s.getPort());
 
             return v;
         }
@@ -169,7 +186,7 @@ public class ConnectionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
-        setContentView(R.layout.fragment_connection_wifi);
+        setContentView(R.layout.activity_connection);
         ButterKnife.bind(this);
     }
 
@@ -178,6 +195,9 @@ public class ConnectionActivity extends AppCompatActivity {
         super.onResume();
 
         db = new CalliopeSQLiteOpenHelper(this);
+        List<Server> servers = db.queryAll(Server.class);
+        serverAdapter = new ServerAdapter(this, servers);
+        serverView.setAdapter(serverAdapter);
 
         if(isWifiEnabled()){
             disabledWifiFrame.setVisibility(View.INVISIBLE);
@@ -216,6 +236,12 @@ public class ConnectionActivity extends AppCompatActivity {
         }
 
         new SocketAsyncTask().execute(s, loginText, passwordText);
+    }
+
+    @OnClick(R.id.wifi_add_server)
+    public void addNewServer(){
+        Intent i = new Intent(this, ServerActivity.class);
+        startActivity(i);
     }
 
     private void onTryConnect(TaskResult<Socket> result){

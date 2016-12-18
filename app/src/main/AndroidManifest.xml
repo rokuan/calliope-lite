@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="apps.rokuan.com.calliope_helper_lite" >
+    package="apps.rokuan.com.calliope_helper_lite">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -35,9 +35,11 @@
         <activity
             android:name=".activity.SpeechActivity"
             android:label="@string/speech_section"
-            android:screenOrientation="portrait">
-        </activity>
+            android:screenOrientation="portrait"></activity>
 
         <service android:name=".service.ConnectionService" />
+
+        <activity android:name=".activity.ServerActivity"></activity>
     </application>
+
 </manifest>

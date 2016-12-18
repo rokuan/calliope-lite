@@ -9,20 +9,19 @@ import android.widget.CompoundButton;
  * Created by LEBEAU Christophe on 17/12/2016.
  */
 
-public class CheckboxFormElement extends CheckBox implements FormBuilder.FormElement {
+public class CheckboxFormElement implements FormBuilder.FormElement {
     private String name;
     private FormBuilder.AttributeAccessor<Boolean> accessor;
+    private CheckBox view;
 
-    public CheckboxFormElement(Context context, String n, FormBuilder.AttributeAccessor<Boolean> a) {
-        super(context);
+    public CheckboxFormElement(String n, FormBuilder.AttributeAccessor<Boolean> a) {
         name = n;
         accessor = a;
-        initView();
     }
 
     private final void initView(){
-        setChecked(accessor.get());
-        setOnCheckedChangeListener(new OnCheckedChangeListener() {
+        view.setChecked(accessor.get());
+        view.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 accessor.set(b);
@@ -36,7 +35,11 @@ public class CheckboxFormElement extends CheckBox implements FormBuilder.FormEle
     }
 
     @Override
-    public View getView() {
-        return this;
+    public View getView(Context context) {
+        if(view == null){
+            view = new CheckBox(context);
+            initView();
+        }
+        return view;
     }
 }

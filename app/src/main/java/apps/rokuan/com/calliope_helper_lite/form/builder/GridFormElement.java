@@ -5,47 +5,42 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 
+import java.util.Arrays;
+import java.util.List;
+
 import apps.rokuan.com.calliope_helper_lite.form.annotations.GridFormField;
 
 /**
  * Created by LEBEAU Christophe on 17/12/2016.
  */
 
-public class GridFormElement extends GridView implements FormBuilder.FormElement {
+public class GridFormElement implements FormBuilder.FormElement {
     private GridFormField annotation;
+    private ArrayAdapter<Object> adapter;
+    private GridView view;
+    private List<Object> data;
 
-    public GridFormElement(Context context, String n, FormBuilder.ArrayAttributeAccessor a){
-        this(context, n, a, null);
+    public GridFormElement(String n, FormBuilder.ArrayAttributeAccessor a){
+        this(n, a, null);
     }
 
-    public GridFormElement(Context context, String n, FormBuilder.ArrayAttributeAccessor a, GridFormField f){
-        super(context);
+    public GridFormElement(String n, FormBuilder.ArrayAttributeAccessor a, GridFormField f){
         annotation = f;
-        initViewFromArray(a);
+        data = Arrays.asList(a.get());
     }
 
-    public GridFormElement(Context context, String n, FormBuilder.ListAttributeAccessor a) {
-        this(context, n, a, null);
+    public GridFormElement(String n, FormBuilder.ListAttributeAccessor a) {
+        this(n, a, null);
     }
 
-    public GridFormElement(Context context, String n, FormBuilder.ListAttributeAccessor a, GridFormField f) {
-        super(context);
+    public GridFormElement(String n, FormBuilder.ListAttributeAccessor a, GridFormField f) {
         annotation = f;
-        initViewFromList(a);
+        data = a.get();
     }
 
-    private final void initView(){
-        setNumColumns(annotation == null ? 2 : annotation.columnCount());
-    }
-
-    private final void initViewFromList(FormBuilder.ListAttributeAccessor a){
-        initView();
-        setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, a.get()));
-    }
-
-    private final void initViewFromArray(FormBuilder.ArrayAttributeAccessor a){
-        initView();
-        setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, a.get()));
+    private final void initView(Context context){
+        view.setNumColumns(annotation == null ? 2 : annotation.columnCount());
+        view.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_list_item_1, data));
     }
 
     @Override
@@ -54,7 +49,11 @@ public class GridFormElement extends GridView implements FormBuilder.FormElement
     }
 
     @Override
-    public View getView() {
-        return this;
+    public View getView(Context context) {
+        if(view == null){
+            view = new GridView(context);
+            initView(context);
+        }
+        return view;
     }
 }
