@@ -8,8 +8,8 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
@@ -25,20 +25,21 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.util.List;
 
 import apps.rokuan.com.calliope_helper_lite.R;
+import apps.rokuan.com.calliope_helper_lite.data.Credentials;
 import apps.rokuan.com.calliope_helper_lite.db.CalliopeSQLiteOpenHelper;
 import apps.rokuan.com.calliope_helper_lite.db.model.Server;
 import apps.rokuan.com.calliope_helper_lite.result.TaskResult;
 import apps.rokuan.com.calliope_helper_lite.service.ConnectionService;
+import apps.rokuan.com.calliope_helper_lite.util.ScalaUtils;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import scala.util.Failure;
+import scala.util.Try;
 
 /**
  * Created by LEBEAU Christophe on 24/07/15.
@@ -58,14 +59,7 @@ public class ConnectionActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             serviceMessenger = new Messenger(service);
-            Message msg = Message.obtain(null, ConnectionService.INTERNET_CONNECTION, socket);
-            try {
-                serviceMessenger.send(msg);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
             bound = true;
-            unbindServiceAndStartActivity();
         }
 
         @Override
@@ -74,56 +68,25 @@ public class ConnectionActivity extends AppCompatActivity {
             bound = false;
         }
     };
-    private Socket socket;
 
-    class SocketAsyncTask extends AsyncTask<Object, Void, TaskResult<Socket>> {
+    private Handler authenticationHandler = new Handler(){
         @Override
-        protected TaskResult<Socket> doInBackground(Object... params) {
-            Socket s = null;
-            Server server = (Server)params[0];
-            String host = server.getHost();
-            int port = server.getPort();
-            String login = params[1].toString();
-            String password = params[2].toString();
-            OutputStream os;
-            InputStream is;
-
-            try {
-                s = new Socket(host, port);
-                os = s.getOutputStream();
-
-                os.write(login.length());
-                os.write(login.getBytes());
-                os.write(password.length());
-                os.write(password.getBytes());
-                os.flush();
-
-                is = s.getInputStream();
-                int response = is.read();
-
-                if(response == 'Y'){
-                    return new TaskResult<Socket>(s);
-                } else {
-                    s.close();
-                    return new TaskResult<Socket>(new RuntimeException("Unable to log in with the current credentials"));
-                }
-            } catch (IOException e) {
-                if (s != null) {
-                    try {
-                        s.close();
-                    } catch (IOException e1) {
-
+        public void handleMessage(Message msg) {
+            switch(msg.what){
+                case ConnectionService.AUTHENTICATION_RESULT:
+                    Try<Boolean> result = (Try<Boolean>)msg.obj;
+                    if(result.isSuccess()){
+                        unbindServiceAndStartActivity();
+                    } else {
+                        Throwable error = ((Failure<Boolean>)result).exception();
+                        Toast.makeText(ConnectionActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
-                }
-                return new TaskResult<Socket>(e);
+                    break;
+                default:
+                    break;
             }
         }
-
-        @Override
-        protected void onPostExecute(TaskResult result){
-            onTryConnect(result);
-        }
-    }
+    };
 
     private BroadcastReceiver wifiState = new BroadcastReceiver() {
         @Override
@@ -188,6 +151,15 @@ public class ConnectionActivity extends AppCompatActivity {
         //setContentView(R.layout.activity_main);
         setContentView(R.layout.activity_connection);
         ButterKnife.bind(this);
+        Intent serviceIntent = new Intent(this.getApplicationContext(), ConnectionService.class);
+        this.startService(serviceIntent);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent serviceIntent = new Intent(this.getApplicationContext(), ConnectionService.class);
+        this.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -218,6 +190,14 @@ public class ConnectionActivity extends AppCompatActivity {
         this.unregisterReceiver(wifiState);
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(bound) {
+            this.unbindService(serviceConnection);
+        }
+    }
+
     @OnClick(R.id.wifi_connect)
     public void connect(){
         int selectedPosition = serverView.getSelectedItemPosition();
@@ -235,28 +215,19 @@ public class ConnectionActivity extends AppCompatActivity {
             return;
         }
 
-        new SocketAsyncTask().execute(s, loginText, passwordText);
+        Message message = Message.obtain(authenticationHandler, ConnectionService.AUTHENTICATION,
+                ScalaUtils.pair(s, new Credentials(loginText, passwordText)));
+        try {
+            serviceMessenger.send(message);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     @OnClick(R.id.wifi_add_server)
     public void addNewServer(){
         Intent i = new Intent(this, ServerActivity.class);
         startActivity(i);
-    }
-
-    private void onTryConnect(TaskResult<Socket> result){
-        if(result.isOk()) {
-            socket = result.getResult();
-            startAndBindService();
-        } else {
-            Toast.makeText(this, result.getError().getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void startAndBindService(){
-        Intent serviceIntent = new Intent(this.getApplicationContext(), ConnectionService.class);
-        this.startService(serviceIntent);
-        this.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     private void unbindServiceAndStartActivity(){
