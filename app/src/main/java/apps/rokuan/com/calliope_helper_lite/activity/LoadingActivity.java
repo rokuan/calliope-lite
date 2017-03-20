@@ -43,7 +43,7 @@ public class LoadingActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(Void result){
+        protected void onPostExecute(Void result) {
             Intent i = new Intent(activity, ConnectionActivity.class);
             //Intent i = new Intent(activity, SpeechActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

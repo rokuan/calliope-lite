@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
@@ -65,6 +66,20 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
             bound = false;
         }
     };
+    private Handler interpretationHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch(msg.what){
+                case ConnectionService.INTERPRETATION_RESULT:
+                    System.out.println("Interpretation Result");
+                    break;
+                default:
+                    super.handleMessage(msg);
+                    break;
+            }
+        }
+    };
+    private Messenger interpretationMessenger = new Messenger(interpretationHandler);
     private CommandAdapter adapter;
 
     @Bind(R.id.speech_button) protected FloatingActionButton speechButton;
@@ -247,6 +262,7 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
             case PARSE_FRAME:
                 switch(toFrame){
                     case TEXT_FRAME:
+                        switchToFrame(TEXT_FRAME);
                         break;
                     case RESULT_FRAME:
                         switchToFrame(RESULT_FRAME);
@@ -447,10 +463,12 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
     private void startProcess(String command){
         String rightPart = command.length() > 1 ? command.substring(1) : "";
         switchToFrame(PARSE_FRAME);
-        messages.insert(adapter.getCount(), Character.toUpperCase(command.charAt(0)) + rightPart);
+        //messages.insert(adapter.getCount(), Character.toUpperCase(command.charAt(0)) + rightPart);
+        appendMessage(Character.toUpperCase(command.charAt(0)) + rightPart);
 
         try {
             Message message = Message.obtain(null, ConnectionService.TEXT_MESSAGE, command);
+            message.replyTo = interpretationMessenger;
             serviceMessenger.send(message);
         } catch(Exception e) {
 
@@ -459,15 +477,15 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
         switchBetweenFrames(PARSE_FRAME, RESULT_FRAME);
     }
 
-    @Override
-    public void onPartialResults(Bundle partialResults) {
-
+    private void appendMessage(String message){
+        messages.insert(adapter.getCount(), message);
     }
 
     @Override
-    public void onEvent(int eventType, Bundle params) {
+    public void onPartialResults(Bundle partialResults) {}
 
-    }
+    @Override
+    public void onEvent(int eventType, Bundle params) {}
 
     class CommandAdapter extends ArrayAdapter<String> implements Insertable<String> {
         private LayoutInflater inflater;

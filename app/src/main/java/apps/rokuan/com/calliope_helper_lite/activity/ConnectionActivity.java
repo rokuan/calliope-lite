@@ -87,6 +87,7 @@ public class ConnectionActivity extends AppCompatActivity {
             }
         }
     };
+    private Messenger authenticationMessenger = new Messenger(authenticationHandler);
 
     private BroadcastReceiver wifiState = new BroadcastReceiver() {
         @Override
@@ -215,8 +216,9 @@ public class ConnectionActivity extends AppCompatActivity {
             return;
         }
 
-        Message message = Message.obtain(authenticationHandler, ConnectionService.AUTHENTICATION,
+        Message message = Message.obtain(null, ConnectionService.AUTHENTICATION,
                 ScalaUtils.pair(s, new Credentials(loginText, passwordText)));
+        message.replyTo = authenticationMessenger;
         try {
             serviceMessenger.send(message);
         } catch (RemoteException e) {
@@ -231,7 +233,6 @@ public class ConnectionActivity extends AppCompatActivity {
     }
 
     private void unbindServiceAndStartActivity(){
-        this.unbindService(serviceConnection);
         Intent i = new Intent(this, SpeechActivity.class);
         this.startActivity(i);
     }

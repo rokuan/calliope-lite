@@ -20,7 +20,7 @@ public class Server {
     @DatabaseField(columnName = "host", dataType = DataType.STRING)
     private String host;
     @DatabaseField(columnName = "port", dataType = DataType.INTEGER)
-    private int port = 7980;
+    private int port = 7981;
 
     public Server(){
 
