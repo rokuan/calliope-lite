@@ -14,6 +14,7 @@ import com.google.android.gms.location.LocationServices;
 import com.ideal.evecore.interpreter.EveMappingObject;
 import com.ideal.evecore.interpreter.EveNumberObject;
 import com.ideal.evecore.interpreter.EveObject;
+import com.ideal.evecore.interpreter.EveObjectList;
 import com.ideal.evecore.interpreter.EveStringObject;
 import com.ideal.evecore.interpreter.EveStructuredObject;
 import com.ideal.evecore.interpreter.QueryContext;
@@ -21,7 +22,9 @@ import com.ideal.evecore.interpreter.QueryContext;
 import java.util.UUID;
 
 import apps.rokuan.com.calliope_helper_lite.util.ScalaUtils;
+import apps.rokuan.com.calliope_helper_lite.util.SimpleFunction;
 import scala.Option;
+import scala.Tuple2;
 
 /**
  * Created by LEBEAU Christophe on 18/03/2017.
@@ -29,6 +32,7 @@ import scala.Option;
 
 public class DataContext implements QueryContext, GoogleApiClient.ConnectionCallbacks {
     public static final String MY_LOCATION_ID = UUID.randomUUID().toString();
+    protected static final Tuple2<String, EveObject> MY_LOCATION_ID_PAIR = ScalaUtils.<String, EveObject>pair("eve_id", new EveStringObject(MY_LOCATION_ID));
 
     private android.content.Context context;
     private GoogleApiClient client;
@@ -59,9 +63,19 @@ public class DataContext implements QueryContext, GoogleApiClient.ConnectionCall
     }
 
     @Override
-    public Option<EveObject> findItemsOfType(String s) {
-        if ("LOCATION".equals(s)) {
-            return Option.<EveObject>apply(getCurrentLocation());
+    public Option<EveObjectList> findItemsOfType(String s) {
+        return findOneItemOfType(s).map(new SimpleFunction<EveStructuredObject, EveObjectList>() {
+            @Override
+            public EveObjectList apply(EveStructuredObject eveStructuredObject) {
+                return new EveObjectList(new EveObject[]{ eveStructuredObject });
+            }
+        });
+    }
+
+    @Override
+    public Option<EveStructuredObject> findOneItemOfType(String s) {
+        if ("LOCATION".equalsIgnoreCase(s)) {
+            return Option.apply(getCurrentLocation());
         }
         return Option.empty();
     }
@@ -99,7 +113,7 @@ public class DataContext implements QueryContext, GoogleApiClient.ConnectionCall
         }
 
         scala.collection.immutable.Map<String, EveObject> values = ScalaUtils.<String, EveObject>asScalaMap(
-                pair("eve_id", new EveStringObject(MY_LOCATION_ID)),
+                //MY_LOCATION_ID_PAIR,
                 pair("latitude", new EveNumberObject(currentLocation.getLatitude())),
                 pair("longitude", new EveNumberObject(currentLocation.getLongitude())));
         return new EveMappingObject(values);

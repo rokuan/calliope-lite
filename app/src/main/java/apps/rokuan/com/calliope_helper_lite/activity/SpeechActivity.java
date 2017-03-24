@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import apps.rokuan.com.calliope_helper_lite.R;
 import apps.rokuan.com.calliope_helper_lite.data.DataContext;
 import apps.rokuan.com.calliope_helper_lite.fragment.SpeechFragment;
+import apps.rokuan.com.calliope_helper_lite.fragment.TextFragment;
 import apps.rokuan.com.calliope_helper_lite.service.ConnectionService;
 
 
@@ -48,7 +49,8 @@ public class SpeechActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
 
         this.getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, new SpeechFragment())
+                //.replace(R.id.container, new SpeechFragment())
+                .replace(R.id.container, new TextFragment())
                 .commit();
         data = new DataContext(this);
     }

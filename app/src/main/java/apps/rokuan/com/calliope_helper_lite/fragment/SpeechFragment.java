@@ -17,15 +17,12 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
 import com.nhaarman.listviewanimations.appearance.simple.SwingBottomInAnimationAdapter;
 import com.nhaarman.listviewanimations.itemmanipulation.DynamicListView;
-import com.nhaarman.listviewanimations.util.Insertable;
 import com.nineoldandroids.animation.Animator;
 
 import java.util.ArrayList;
@@ -486,32 +483,4 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
 
     @Override
     public void onEvent(int eventType, Bundle params) {}
-
-    class CommandAdapter extends ArrayAdapter<String> implements Insertable<String> {
-        private LayoutInflater inflater;
-
-        public CommandAdapter(Context context, List<String> objects) {
-            super(context, R.layout.command_item, objects);
-            inflater = LayoutInflater.from(context);
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View v = convertView;
-
-            if(v == null){
-                v = inflater.inflate(R.layout.command_item, parent, false);
-            }
-
-            TextView messageContent = (TextView)v.findViewById(R.id.command_item_text);
-            messageContent.setText(this.getItem(position));
-
-            return v;
-        }
-
-        @Override
-        public void add(int index, String item) {
-            this.add(item);
-        }
-    }
 }

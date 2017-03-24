@@ -37,11 +37,13 @@
             android:id="@+id/wifi_login"
             android:maxLines="1"
             android:hint="@string/wifi_login_hint"
+            android:inputType="text"
             android:layout_marginTop="@dimen/form_padding"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
         <EditText
             android:id="@+id/wifi_password"
+            android:maxLines="1"
             android:hint="@string/wifi_password_hint"
             android:inputType="textPassword"
             android:layout_marginTop="@dimen/form_padding"

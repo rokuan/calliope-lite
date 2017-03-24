@@ -110,10 +110,10 @@ public class ConnectionService extends Service {
                     if(socket != null){
                         byte[] data = ((String)msg.obj).getBytes();
                         byte[] length = new byte[]{
-                                (byte)data.length,
-                                (byte)(data.length >> 8),
+                                (byte)(data.length >> 24),
                                 (byte)(data.length >> 16),
-                                (byte)(data.length >> 24)
+                                (byte)(data.length >> 8),
+                                (byte)data.length
                         };
 
                         try {
