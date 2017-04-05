@@ -14,7 +14,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import apps.rokuan.com.calliope_helper_lite.R;
 import apps.rokuan.com.calliope_helper_lite.data.DataContext;
-import apps.rokuan.com.calliope_helper_lite.fragment.SpeechFragment;
 import apps.rokuan.com.calliope_helper_lite.fragment.TextFragment;
 import apps.rokuan.com.calliope_helper_lite.service.ConnectionService;
 

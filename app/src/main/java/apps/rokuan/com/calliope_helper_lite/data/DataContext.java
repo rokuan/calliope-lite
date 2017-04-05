@@ -11,13 +11,15 @@ import android.support.v4.app.ActivityCompat;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.ideal.evecore.interpreter.Context;
 import com.ideal.evecore.interpreter.EveMappingObject;
 import com.ideal.evecore.interpreter.EveNumberObject;
 import com.ideal.evecore.interpreter.EveObject;
 import com.ideal.evecore.interpreter.EveObjectList;
+import com.ideal.evecore.interpreter.EveQueryMappingObject;
 import com.ideal.evecore.interpreter.EveStringObject;
 import com.ideal.evecore.interpreter.EveStructuredObject;
-import com.ideal.evecore.interpreter.QueryContext;
+import com.ideal.evecore.interpreter.QuerySource;
 
 import java.util.UUID;
 
@@ -30,7 +32,7 @@ import scala.Tuple2;
  * Created by LEBEAU Christophe on 18/03/2017.
  */
 
-public class DataContext implements QueryContext, GoogleApiClient.ConnectionCallbacks {
+public class DataContext implements Context, QuerySource, GoogleApiClient.ConnectionCallbacks {
     public static final String MY_LOCATION_ID = UUID.randomUUID().toString();
     protected static final Tuple2<String, EveObject> MY_LOCATION_ID_PAIR = ScalaUtils.<String, EveObject>pair("eve_id", new EveStringObject(MY_LOCATION_ID));
 
@@ -116,7 +118,7 @@ public class DataContext implements QueryContext, GoogleApiClient.ConnectionCall
                 //MY_LOCATION_ID_PAIR,
                 pair("latitude", new EveNumberObject(currentLocation.getLatitude())),
                 pair("longitude", new EveNumberObject(currentLocation.getLongitude())));
-        return new EveMappingObject(values);
+        return new EveQueryMappingObject(MY_LOCATION_ID, values);
     }
 
     @Override

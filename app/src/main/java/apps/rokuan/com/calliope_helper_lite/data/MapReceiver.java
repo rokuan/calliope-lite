@@ -11,7 +11,6 @@ import com.ideal.evecore.interpreter.EveStringObject;
 import com.ideal.evecore.interpreter.EveStructuredObject;
 import com.ideal.evecore.universe.ValueMatcher;
 import com.ideal.evecore.universe.receiver.EveObjectMessage;
-import com.ideal.evecore.universe.receiver.Message;
 import com.ideal.evecore.universe.receiver.Receiver;
 import com.ideal.evecore.universe.serialization.JsonValueMatcher;
 
@@ -55,35 +54,31 @@ public class MapReceiver implements Receiver {
     }
 
     @Override
-    public Try<EveObject> handleMessage(Message message) {
-        if(message instanceof EveObjectMessage){
-            EveObjectMessage objectMessage = (EveObjectMessage)message;
-            try {
-                EveStructuredObject what = (EveStructuredObject)objectMessage.obj().apply("what");
-                Option<EveObject> eveType = what.get("eve_type");
-                EveStructuredObject target = null;
+    public Try<EveObject> handleMessage(EveObjectMessage message) {
+        try {
+            EveStructuredObject what = (EveStructuredObject) message.obj().apply("what");
+            Option<EveObject> eveType = what.get("eve_type");
+            EveStructuredObject target = null;
 
-                if(eveType.isDefined()){
-                    String t = ((EveStringObject)eveType.get()).s();
-                    if("location".equals(t)){
-                        target = what;
-                    }
+            if (eveType.isDefined()) {
+                String t = ((EveStringObject) eveType.get()).s();
+                if ("location".equals(t)) {
+                    target = what;
                 }
-
-                if(target == null){
-                    target = (EveStructuredObject)what.get("location");
-                }
-
-                double latitude = ((EveNumberObject)target.apply("latitude")).n().doubleValue();
-                double longitude = ((EveNumberObject)target.apply("longitude")).n().doubleValue();
-                LatLng location = new LatLng(latitude, longitude);
-                // TODO: display the location on the map
-                return Success.<EveObject>apply(new EveBooleanObject(true));
-            } catch (Exception e) {
-                return Failure.apply(e);
             }
+
+            if (target == null) {
+                target = (EveStructuredObject) what.get("location");
+            }
+
+            double latitude = ((EveNumberObject) target.apply("latitude")).n().doubleValue();
+            double longitude = ((EveNumberObject) target.apply("longitude")).n().doubleValue();
+            LatLng location = new LatLng(latitude, longitude);
+            // TODO: display the location on the map
+            return Success.<EveObject>apply(new EveBooleanObject(true));
+        } catch (Exception e) {
+            return Failure.apply(e);
         }
-        return Failure.apply(new Exception("Cannot handle this message"));
     }
 
     @Override

@@ -116,7 +116,7 @@ public class TextFragment extends Fragment {
         appendMessage(Character.toUpperCase(command.charAt(0)) + rightPart);
 
         try {
-            Message message = Message.obtain(null, ConnectionService.TEXT_MESSAGE, command);
+            Message message = Message.obtain(null, ConnectionService.EVALUATE, command);
             message.replyTo = interpretationMessenger;
             serviceMessenger.send(message);
         } catch(Exception e) {

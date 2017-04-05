@@ -10,19 +10,15 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.ideal.evecore.interpreter.QueryContext;
-import com.ideal.evecore.interpreter.remote.StreamContext;
-import com.ideal.evecore.interpreter.remote.StreamReceiver;
+import com.ideal.evecore.interpreter.Context;
+import com.ideal.evecore.interpreter.EveObject;
+import com.ideal.evecore.io.UserConnection;
+import com.ideal.evecore.io.message.Result;
 import com.ideal.evecore.universe.receiver.Receiver;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
 
 import apps.rokuan.com.calliope_helper_lite.data.Credentials;
 import apps.rokuan.com.calliope_helper_lite.db.model.Server;
-import apps.rokuan.com.calliope_helper_lite.util.SimpleVoidFunction;
 import scala.Tuple2;
 import scala.util.Failure;
 import scala.util.Success;
@@ -33,7 +29,7 @@ import scala.util.Try;
  */
 public class ConnectionService extends Service {
     public static final int BLUETOOTH_CONNECTION = 0;
-    public static final int TEXT_MESSAGE = 2;
+    public static final int EVALUATE = 2;
     public static final int INTERPRETATION_RESULT = 9;
     //public static final int DISCONNECTION = 3;
     public static final int REGISTER_CONTEXT = 5;
@@ -52,34 +48,19 @@ public class ConnectionService extends Service {
         @Override
         protected Try<Boolean> doInBackground(Tuple2<Server, Credentials>... params) {
             Tuple2<Server, Credentials> parameters = params[0];
-            Socket s;
-            Try<Boolean> result = Failure.apply(new RuntimeException("Cannot connect to server"));
+            Try<Boolean> result;
 
             try {
-                String login = parameters._2.getLogin(), password = parameters._2.getPassword();
-                s = new Socket(parameters._1.getHost(), parameters._1.getPort());
-                OutputStream os = s.getOutputStream();
-                InputStream is = s.getInputStream();
-
-                os.write(login.length());
-                os.write(login.getBytes());
-                os.write(password.length());
-                os.write(password.getBytes());
-                os.flush();
-
-                int response = is.read();
-
-                if(response == 'Y'){
-                    result = Success.apply(true);
-                    socket = new WifiDataSocket(s);
-                    serverParams = parameters._1;
-                    Log.i("ConnectionService", "WifiDataSocket connected");
-                } else {
-                    try { s.close(); } catch (Exception e) { }
-                    result = Failure.apply(new RuntimeException("Unable to log in with the current credentials"));
-                }
+                String login = parameters._2.getLogin(), password = parameters._2.getPassword(),
+                        host = parameters._1.getHost();
+                int port = parameters._1.getPort();
+                connection = new UserConnection(host, port,
+                        new com.ideal.evecore.io.Credentials(login, password));
+                result = Success.apply(true);
+                Log.i("ConnectionService", "WifiDataSocket connected");
             } catch (Exception e) {
                 e.printStackTrace();
+                result = Failure.apply(e);
             }
             return result;
         }
@@ -99,63 +80,42 @@ public class ConnectionService extends Service {
     class ConnectionHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
+            Messenger origin = msg.replyTo;
+
             switch (msg.what) {
                 case AUTHENTICATION:
-                    Messenger origin = msg.replyTo;
                     new AuthenticationAsyncTask(origin).execute((Tuple2<Server, Credentials>)msg.obj);
                     break;
-                /*case DISCONNECTION:
-                    break;*/
-                case TEXT_MESSAGE:
-                    if(socket != null){
-                        byte[] data = ((String)msg.obj).getBytes();
-                        byte[] length = new byte[]{
-                                (byte)(data.length >> 24),
-                                (byte)(data.length >> 16),
-                                (byte)(data.length >> 8),
-                                (byte)data.length
-                        };
-
+                case EVALUATE:
+                    if(connection != null){
+                        Result<EveObject> result = connection.evaluate((String)msg.obj);
+                        Message response = Message.obtain(null, INTERPRETATION_RESULT, result);
                         try {
-                            socket.write(length, 0, length.length);
-                            socket.write(data, 0, data.length);
-                        } catch (IOException e) {
+                            origin.send(response);
+                        } catch (RemoteException e) {
                             e.printStackTrace();
                         }
                     }
                     break;
                 case REGISTER_CONTEXT:
-                    final QueryContext context = (QueryContext)msg.obj;
+                    final Context context = (Context)msg.obj;
                     System.out.println("Registering a new context");
-                    new AsyncTask() {
-                        @Override
-                        protected Object doInBackground(Object[] objects) {
-                            StreamContext.connect(serverParams.getHost(), 7982, context).foreach(new SimpleVoidFunction<StreamContext>() {
-                                @Override
-                                public void process(StreamContext streamContext) {
-
-                                }
-                            });
-                            return null;
-                        }
-                    }.execute();
+                    if(connection != null){
+                        connection.registerContext(context);
+                    }
                     break;
                 case REGISTER_RECEIVER:
                     final Receiver receiver = (Receiver)msg.obj;
-                    new AsyncTask(){
-                        @Override
-                        protected Object doInBackground(Object[] objects) {
-                            StreamReceiver.connect(serverParams.getHost(), 7983, receiver).foreach(new SimpleVoidFunction<StreamReceiver>(){
-                                @Override
-                                public void process(StreamReceiver streamReceiver) {
-
-                                }
-                            });
-                            return null;
-                        }
-                    }.execute();
+                    System.out.println("Registering a new receiver");
+                    if(connection != null){
+                        connection.registerReceiver(receiver);
+                    }
                     break;
                 case EXIT:
+                    if(connection != null){
+                        connection.disconnect();
+                        connection = null;
+                    }
                     break;
                 default:
                     super.handleMessage(msg);
@@ -164,8 +124,7 @@ public class ConnectionService extends Service {
         }
     }
 
-    private DataSocket socket;
-    private Server serverParams;
+    private UserConnection connection;
     private Messenger messenger = new Messenger(new ConnectionHandler());
 
     @Override
@@ -182,10 +141,9 @@ public class ConnectionService extends Service {
     public void onDestroy(){
         super.onDestroy();
 
-        if(socket != null){
+        if(connection != null){
             Log.i("ConnectionService", "closing socket...");
-            socket.close();
-            socket = null;
+            connection.disconnect();
         }
     }
 }
