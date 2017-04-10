@@ -16,6 +16,7 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,21 +26,18 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.net.Socket;
+import com.ideal.evecore.common.Credentials;
+import com.ideal.evecore.util.Result;
+
 import java.util.List;
 
 import apps.rokuan.com.calliope_helper_lite.R;
-import apps.rokuan.com.calliope_helper_lite.data.Credentials;
 import apps.rokuan.com.calliope_helper_lite.db.CalliopeSQLiteOpenHelper;
 import apps.rokuan.com.calliope_helper_lite.db.model.Server;
-import apps.rokuan.com.calliope_helper_lite.result.TaskResult;
 import apps.rokuan.com.calliope_helper_lite.service.ConnectionService;
-import apps.rokuan.com.calliope_helper_lite.util.ScalaUtils;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import scala.util.Failure;
-import scala.util.Try;
 
 /**
  * Created by LEBEAU Christophe on 24/07/15.
@@ -74,11 +72,11 @@ public class ConnectionActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             switch(msg.what){
                 case ConnectionService.AUTHENTICATION_RESULT:
-                    Try<Boolean> result = (Try<Boolean>)msg.obj;
-                    if(result.isSuccess()){
+                    Result<Boolean> result = (Result<Boolean>)msg.obj;
+                    if (result.isSuccess()) {
                         unbindServiceAndStartActivity();
                     } else {
-                        Throwable error = ((Failure<Boolean>)result).exception();
+                        Throwable error = result.getError();
                         Toast.makeText(ConnectionActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                     break;
@@ -217,7 +215,7 @@ public class ConnectionActivity extends AppCompatActivity {
         }
 
         Message message = Message.obtain(null, ConnectionService.AUTHENTICATION,
-                ScalaUtils.pair(s, new Credentials(loginText, passwordText)));
+                new Pair<Server, Credentials>(s, new Credentials(loginText, passwordText)));
         message.replyTo = authenticationMessenger;
         try {
             serviceMessenger.send(message);
@@ -238,7 +236,7 @@ public class ConnectionActivity extends AppCompatActivity {
     }
 
     private boolean isWifiEnabled() {
-        WifiManager wifi = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifi = (WifiManager) this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         return wifi.isWifiEnabled();
     }
 }

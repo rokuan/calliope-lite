@@ -4,25 +4,21 @@ import android.content.Context;
 import android.content.res.AssetManager;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.ideal.evecore.interpreter.EveBooleanObject;
-import com.ideal.evecore.interpreter.EveNumberObject;
-import com.ideal.evecore.interpreter.EveObject;
-import com.ideal.evecore.interpreter.EveStringObject;
-import com.ideal.evecore.interpreter.EveStructuredObject;
-import com.ideal.evecore.universe.ValueMatcher;
+import com.ideal.evecore.common.Mapping;
+import com.ideal.evecore.interpreter.data.EveBooleanObject;
+import com.ideal.evecore.interpreter.data.EveNumberObject;
+import com.ideal.evecore.interpreter.data.EveObject;
+import com.ideal.evecore.interpreter.data.EveStringObject;
+import com.ideal.evecore.interpreter.data.EveStructuredObject;
+import com.ideal.evecore.universe.matcher.ValueMatcher;
+import com.ideal.evecore.universe.matcher.ValueMatcherUtils;
 import com.ideal.evecore.universe.receiver.EveObjectMessage;
 import com.ideal.evecore.universe.receiver.Receiver;
-import com.ideal.evecore.universe.serialization.JsonValueMatcher;
+import com.ideal.evecore.util.Option;
+import com.ideal.evecore.util.Result;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import apps.rokuan.com.calliope_helper_lite.util.ScalaUtils;
-import scala.Option;
-import scala.collection.immutable.Map;
-import scala.util.Failure;
-import scala.util.Success;
-import scala.util.Try;
 
 /**
  * Created by chris on 21/03/2017.
@@ -30,7 +26,7 @@ import scala.util.Try;
 
 public class MapReceiver implements Receiver {
     private Context context;
-    private Map<String, ValueMatcher> mappings = ScalaUtils.asScalaMap();
+    private Mapping<ValueMatcher> mappings = new Mapping<ValueMatcher>();
 
     public MapReceiver(Context c){
         context = c;
@@ -41,7 +37,7 @@ public class MapReceiver implements Receiver {
         AssetManager assetsManager = context.getAssets();
         try {
             InputStream is = assetsManager.open("map_receiver.json");
-            mappings = JsonValueMatcher.parseMapping(is);
+            mappings = ValueMatcherUtils.parseJson(is);
             is.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -54,14 +50,14 @@ public class MapReceiver implements Receiver {
     }
 
     @Override
-    public Try<EveObject> handleMessage(EveObjectMessage message) {
+    public Result<EveObject> handleMessage(EveObjectMessage message) {
         try {
-            EveStructuredObject what = (EveStructuredObject) message.obj().apply("what");
+            EveStructuredObject what = (EveStructuredObject) message.getContent().get("what").get();
             Option<EveObject> eveType = what.get("eve_type");
             EveStructuredObject target = null;
 
             if (eveType.isDefined()) {
-                String t = ((EveStringObject) eveType.get()).s();
+                String t = ((EveStringObject) eveType.get()).getValue();
                 if ("location".equals(t)) {
                     target = what;
                 }
@@ -71,13 +67,13 @@ public class MapReceiver implements Receiver {
                 target = (EveStructuredObject) what.get("location");
             }
 
-            double latitude = ((EveNumberObject) target.apply("latitude")).n().doubleValue();
-            double longitude = ((EveNumberObject) target.apply("longitude")).n().doubleValue();
+            double latitude = ((EveNumberObject) target.get("latitude").get()).getValue().doubleValue();
+            double longitude = ((EveNumberObject) target.get("longitude").get()).getValue().doubleValue();
             LatLng location = new LatLng(latitude, longitude);
             // TODO: display the location on the map
-            return Success.<EveObject>apply(new EveBooleanObject(true));
+            return Result.<EveObject>ok(new EveBooleanObject(true));
         } catch (Exception e) {
-            return Failure.apply(e);
+            return Result.ko(e);
         }
     }
 
@@ -87,7 +83,7 @@ public class MapReceiver implements Receiver {
     }
 
     @Override
-    public Map<String, ValueMatcher> getMappings() {
+    public Mapping<ValueMatcher> getMappings() {
         return mappings;
     }
 

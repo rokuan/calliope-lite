@@ -1,6 +1,5 @@
 package apps.rokuan.com.calliope_helper_lite.data;
 
-import static apps.rokuan.com.calliope_helper_lite.util.ScalaUtils.*;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -12,21 +11,19 @@ import android.support.v4.app.ActivityCompat;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.ideal.evecore.interpreter.Context;
-import com.ideal.evecore.interpreter.EveMappingObject;
-import com.ideal.evecore.interpreter.EveNumberObject;
-import com.ideal.evecore.interpreter.EveObject;
-import com.ideal.evecore.interpreter.EveObjectList;
-import com.ideal.evecore.interpreter.EveQueryMappingObject;
-import com.ideal.evecore.interpreter.EveStringObject;
-import com.ideal.evecore.interpreter.EveStructuredObject;
 import com.ideal.evecore.interpreter.QuerySource;
+import com.ideal.evecore.interpreter.data.EveNumberObject;
+import com.ideal.evecore.interpreter.data.EveObject;
+import com.ideal.evecore.interpreter.data.EveObjectList;
+import com.ideal.evecore.interpreter.data.EveQueryMappingObject;
+import com.ideal.evecore.interpreter.data.EveStringObject;
+import com.ideal.evecore.interpreter.data.EveStructuredObject;
+import com.ideal.evecore.util.Option;
+import com.ideal.evecore.util.Pair;
+import com.ideal.evecore.util.Transformer;
 
 import java.util.UUID;
 
-import apps.rokuan.com.calliope_helper_lite.util.ScalaUtils;
-import apps.rokuan.com.calliope_helper_lite.util.SimpleFunction;
-import scala.Option;
-import scala.Tuple2;
 
 /**
  * Created by LEBEAU Christophe on 18/03/2017.
@@ -34,7 +31,6 @@ import scala.Tuple2;
 
 public class DataContext implements Context, QuerySource, GoogleApiClient.ConnectionCallbacks {
     public static final String MY_LOCATION_ID = UUID.randomUUID().toString();
-    protected static final Tuple2<String, EveObject> MY_LOCATION_ID_PAIR = ScalaUtils.<String, EveObject>pair("eve_id", new EveStringObject(MY_LOCATION_ID));
 
     private android.content.Context context;
     private GoogleApiClient client;
@@ -66,7 +62,7 @@ public class DataContext implements Context, QuerySource, GoogleApiClient.Connec
 
     @Override
     public Option<EveObjectList> findItemsOfType(String s) {
-        return findOneItemOfType(s).map(new SimpleFunction<EveStructuredObject, EveObjectList>() {
+        return findOneItemOfType(s).map(new Transformer<EveStructuredObject, EveObjectList>() {
             @Override
             public EveObjectList apply(EveStructuredObject eveStructuredObject) {
                 return new EveObjectList(new EveObject[]{ eveStructuredObject });
@@ -114,11 +110,9 @@ public class DataContext implements Context, QuerySource, GoogleApiClient.Connec
             return null;
         }
 
-        scala.collection.immutable.Map<String, EveObject> values = ScalaUtils.<String, EveObject>asScalaMap(
-                //MY_LOCATION_ID_PAIR,
-                pair("latitude", new EveNumberObject(currentLocation.getLatitude())),
-                pair("longitude", new EveNumberObject(currentLocation.getLongitude())));
-        return new EveQueryMappingObject(MY_LOCATION_ID, values);
+        return new EveQueryMappingObject(MY_LOCATION_ID,
+                new Pair("latitude", new EveNumberObject(currentLocation.getLatitude())),
+                new Pair("longitude", new EveNumberObject(currentLocation.getLongitude())));
     }
 
     @Override

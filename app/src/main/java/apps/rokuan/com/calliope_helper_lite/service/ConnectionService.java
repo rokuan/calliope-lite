@@ -10,19 +10,16 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.ideal.evecore.common.Credentials;
 import com.ideal.evecore.interpreter.Context;
-import com.ideal.evecore.interpreter.EveObject;
+import com.ideal.evecore.interpreter.data.EveObject;
 import com.ideal.evecore.io.UserConnection;
-import com.ideal.evecore.io.message.Result;
 import com.ideal.evecore.universe.receiver.Receiver;
+import com.ideal.evecore.util.Pair;
+import com.ideal.evecore.util.Result;
 
 
-import apps.rokuan.com.calliope_helper_lite.data.Credentials;
 import apps.rokuan.com.calliope_helper_lite.db.model.Server;
-import scala.Tuple2;
-import scala.util.Failure;
-import scala.util.Success;
-import scala.util.Try;
 
 /**
  * Created by LEBEAU Christophe on 27/07/15.
@@ -38,7 +35,7 @@ public class ConnectionService extends Service {
     public static final int AUTHENTICATION_RESULT = 8;
     public static final int EXIT = 4;
 
-    class AuthenticationAsyncTask extends AsyncTask<Tuple2<Server, Credentials>, Void, Try<Boolean>> {
+    class AuthenticationAsyncTask extends AsyncTask<Pair<Server, Credentials>, Void, Result<Boolean>> {
         private Messenger origin;
 
         private AuthenticationAsyncTask(Messenger replyTo){
@@ -46,27 +43,27 @@ public class ConnectionService extends Service {
         }
 
         @Override
-        protected Try<Boolean> doInBackground(Tuple2<Server, Credentials>... params) {
-            Tuple2<Server, Credentials> parameters = params[0];
-            Try<Boolean> result;
+        protected Result<Boolean> doInBackground(Pair<Server, Credentials>... params) {
+            Pair<Server, Credentials> parameters = params[0];
+            Result<Boolean> result;
 
             try {
-                String login = parameters._2.getLogin(), password = parameters._2.getPassword(),
-                        host = parameters._1.getHost();
-                int port = parameters._1.getPort();
+                String login = parameters.second.getLogin(), password = parameters.second.getPassword(),
+                        host = parameters.first.getHost();
+                int port = parameters.first.getPort();
                 connection = new UserConnection(host, port,
-                        new com.ideal.evecore.io.Credentials(login, password));
-                result = Success.apply(true);
+                        new Credentials(login, password));
+                result = Result.ok(true);
                 Log.i("ConnectionService", "WifiDataSocket connected");
             } catch (Exception e) {
                 e.printStackTrace();
-                result = Failure.apply(e);
+                result = Result.ko(e);
             }
             return result;
         }
 
         @Override
-        protected void onPostExecute(Try<Boolean> result) {
+        protected void onPostExecute(Result<Boolean> result) {
             Message resultMessage = Message.obtain(null, AUTHENTICATION_RESULT, result);
             resultMessage.replyTo = messenger;
             try {
@@ -84,7 +81,7 @@ public class ConnectionService extends Service {
 
             switch (msg.what) {
                 case AUTHENTICATION:
-                    new AuthenticationAsyncTask(origin).execute((Tuple2<Server, Credentials>)msg.obj);
+                    new AuthenticationAsyncTask(origin).execute((Pair<Server, Credentials>)msg.obj);
                     break;
                 case EVALUATE:
                     if(connection != null){

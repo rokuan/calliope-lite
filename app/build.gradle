@@ -4,21 +4,27 @@ android {
     compileSdkVersion 23
     buildToolsVersion '25.0.0'
 
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        //exclude 'META-INF/native/**'
+        //exclude 'rootdoc.txt'
+    }
+
     defaultConfig {
         applicationId "apps.rokuan.com.eve_helper"
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        //multiDexEnabled true
     }
+
     buildTypes {
-        debug {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
         release {
-            //minifyEnabled false
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
