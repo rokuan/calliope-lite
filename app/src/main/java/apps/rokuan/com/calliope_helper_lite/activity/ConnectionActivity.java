@@ -16,7 +16,6 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ideal.evecore.common.Credentials;
+import com.ideal.evecore.util.Pair;
 import com.ideal.evecore.util.Result;
 
 import java.util.List;
@@ -35,6 +35,7 @@ import apps.rokuan.com.calliope_helper_lite.R;
 import apps.rokuan.com.calliope_helper_lite.db.CalliopeSQLiteOpenHelper;
 import apps.rokuan.com.calliope_helper_lite.db.model.Server;
 import apps.rokuan.com.calliope_helper_lite.service.ConnectionService;
+import apps.rokuan.com.calliope_helper_lite.service.MessageCategory;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -70,8 +71,8 @@ public class ConnectionActivity extends AppCompatActivity {
     private Handler authenticationHandler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
-            switch(msg.what){
-                case ConnectionService.AUTHENTICATION_RESULT:
+            switch(MessageCategory.values()[msg.what]){
+                case AUTHENTICATION_RESULT:
                     Result<Boolean> result = (Result<Boolean>)msg.obj;
                     if (result.isSuccess()) {
                         unbindServiceAndStartActivity();
@@ -214,7 +215,7 @@ public class ConnectionActivity extends AppCompatActivity {
             return;
         }
 
-        Message message = Message.obtain(null, ConnectionService.AUTHENTICATION,
+        Message message = Message.obtain(null, MessageCategory.AUTHENTICATION.ordinal(),
                 new Pair<Server, Credentials>(s, new Credentials(loginText, passwordText)));
         message.replyTo = authenticationMessenger;
         try {

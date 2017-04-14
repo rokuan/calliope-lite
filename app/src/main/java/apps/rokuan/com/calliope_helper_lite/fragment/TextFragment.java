@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import com.ideal.evecore.interpreter.data.EveObject;
+import com.ideal.evecore.util.Result;
 import com.nhaarman.listviewanimations.appearance.simple.SwingBottomInAnimationAdapter;
 import com.nhaarman.listviewanimations.itemmanipulation.DynamicListView;
 
@@ -53,6 +55,12 @@ public class TextFragment extends Fragment {
             switch(msg.what){
                 case ConnectionService.INTERPRETATION_RESULT:
                     System.out.println("Interpretation Result");
+                    Result<EveObject> result = (Result<EveObject>)msg.obj;
+                    if (result.isSuccess()) {
+                        System.out.println(result.get());
+                    } else {
+                        System.out.println("An error occurred: " + result.getError());
+                    }
                     break;
                 default:
                     super.handleMessage(msg);

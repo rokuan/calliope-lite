@@ -67,6 +67,12 @@ public class SpeechActivity extends AppCompatActivity {
         super.onStop();
         data.stopClient();
         if(bound){
+            Message unregisterMessage = Message.obtain(null, ConnectionService.UNREGISTER_CONTEXT, data);
+            try {
+                serviceMessenger.send(unregisterMessage);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
             this.unbindService(serviceConnection);
         }
     }

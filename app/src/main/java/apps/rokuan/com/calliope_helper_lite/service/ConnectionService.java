@@ -21,20 +21,11 @@ import com.ideal.evecore.util.Result;
 
 import apps.rokuan.com.calliope_helper_lite.db.model.Server;
 
+
 /**
  * Created by LEBEAU Christophe on 27/07/15.
  */
 public class ConnectionService extends Service {
-    public static final int BLUETOOTH_CONNECTION = 0;
-    public static final int EVALUATE = 2;
-    public static final int INTERPRETATION_RESULT = 9;
-    //public static final int DISCONNECTION = 3;
-    public static final int REGISTER_CONTEXT = 5;
-    public static final int REGISTER_RECEIVER = 6;
-    public static final int AUTHENTICATION = 7;
-    public static final int AUTHENTICATION_RESULT = 8;
-    public static final int EXIT = 4;
-
     class AuthenticationAsyncTask extends AsyncTask<Pair<Server, Credentials>, Void, Result<Boolean>> {
         private Messenger origin;
 
@@ -53,6 +44,7 @@ public class ConnectionService extends Service {
                 int port = parameters.first.getPort();
                 connection = new UserConnection(host, port,
                         new Credentials(login, password));
+                connection.start();
                 result = Result.ok(true);
                 Log.i("ConnectionService", "WifiDataSocket connected");
             } catch (Exception e) {
@@ -64,7 +56,7 @@ public class ConnectionService extends Service {
 
         @Override
         protected void onPostExecute(Result<Boolean> result) {
-            Message resultMessage = Message.obtain(null, AUTHENTICATION_RESULT, result);
+            Message resultMessage = Message.obtain(null, MessageCategory.AUTHENTICATION_RESULT.ordinal(), result);
             resultMessage.replyTo = messenger;
             try {
                 origin.send(resultMessage);
@@ -78,15 +70,17 @@ public class ConnectionService extends Service {
         @Override
         public void handleMessage(Message msg) {
             Messenger origin = msg.replyTo;
+            Receiver receiver;
+            Context context;
 
-            switch (msg.what) {
+            switch (MessageCategory.values()[msg.what]) {
                 case AUTHENTICATION:
                     new AuthenticationAsyncTask(origin).execute((Pair<Server, Credentials>)msg.obj);
                     break;
                 case EVALUATE:
                     if(connection != null){
                         Result<EveObject> result = connection.evaluate((String)msg.obj);
-                        Message response = Message.obtain(null, INTERPRETATION_RESULT, result);
+                        Message response = Message.obtain(null, MessageCategory.INTERPRETATION_RESULT.ordinal(), result);
                         try {
                             origin.send(response);
                         } catch (RemoteException e) {
@@ -95,17 +89,29 @@ public class ConnectionService extends Service {
                     }
                     break;
                 case REGISTER_CONTEXT:
-                    final Context context = (Context)msg.obj;
+                    context = (Context)msg.obj;
                     System.out.println("Registering a new context");
                     if(connection != null){
                         connection.registerContext(context);
                     }
                     break;
                 case REGISTER_RECEIVER:
-                    final Receiver receiver = (Receiver)msg.obj;
+                    receiver = (Receiver)msg.obj;
                     System.out.println("Registering a new receiver");
                     if(connection != null){
                         connection.registerReceiver(receiver);
+                    }
+                    break;
+                case UNREGISTER_CONTEXT:
+                    context = (Context)msg.obj;
+                    if(connection != null){
+                        connection.unregisterContext(context);
+                    }
+                    break;
+                case UNREGISTER_RECEIVER:
+                    receiver = (Receiver)msg.obj;
+                    if(connection != null){
+                        connection.unregisterReceiver(receiver);
                     }
                     break;
                 case EXIT:

@@ -69,6 +69,7 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
             switch(msg.what){
                 case ConnectionService.INTERPRETATION_RESULT:
                     System.out.println("Interpretation Result");
+                    System.out.println(msg.obj);
                     break;
                 default:
                     super.handleMessage(msg);
