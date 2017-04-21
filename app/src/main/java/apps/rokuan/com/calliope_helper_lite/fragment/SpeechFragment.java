@@ -30,6 +30,7 @@ import java.util.List;
 
 import apps.rokuan.com.calliope_helper_lite.R;
 import apps.rokuan.com.calliope_helper_lite.service.ConnectionService;
+import apps.rokuan.com.calliope_helper_lite.service.MessageCategory;
 import apps.rokuan.com.calliope_helper_lite.view.SoundLevelView;
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -66,8 +67,8 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
     private Handler interpretationHandler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
-            switch(msg.what){
-                case ConnectionService.INTERPRETATION_RESULT:
+            switch(MessageCategory.values()[msg.what]){
+                case INTERPRETATION_RESULT:
                     System.out.println("Interpretation Result");
                     System.out.println(msg.obj);
                     break;
@@ -465,7 +466,7 @@ public class SpeechFragment extends Fragment implements RecognitionListener {
         appendMessage(Character.toUpperCase(command.charAt(0)) + rightPart);
 
         try {
-            Message message = Message.obtain(null, ConnectionService.EVALUATE, command);
+            Message message = Message.obtain(null, MessageCategory.EVALUATE.ordinal(), command);
             message.replyTo = interpretationMessenger;
             serviceMessenger.send(message);
         } catch(Exception e) {

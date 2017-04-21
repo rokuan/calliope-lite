@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import com.ideal.evecore.interpreter.data.EveObject;
+import com.ideal.evecore.interpreter.data.EveStructuredObject;
 import com.ideal.evecore.util.Result;
 import com.nhaarman.listviewanimations.appearance.simple.SwingBottomInAnimationAdapter;
 import com.nhaarman.listviewanimations.itemmanipulation.DynamicListView;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 
 import apps.rokuan.com.calliope_helper_lite.R;
 import apps.rokuan.com.calliope_helper_lite.service.ConnectionService;
+import apps.rokuan.com.calliope_helper_lite.service.MessageCategory;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -52,14 +54,27 @@ public class TextFragment extends Fragment {
     private Handler interpretationHandler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
-            switch(msg.what){
-                case ConnectionService.INTERPRETATION_RESULT:
+            switch(MessageCategory.values()[msg.what]){
+                case INTERPRETATION_RESULT:
                     System.out.println("Interpretation Result");
                     Result<EveObject> result = (Result<EveObject>)msg.obj;
                     if (result.isSuccess()) {
-                        System.out.println(result.get());
+                        //System.out.println(result.get());
+                        if (result.get() instanceof EveStructuredObject) {
+                            System.out.println(result.get());
+                            EveStructuredObject eso = (EveStructuredObject) result.get();
+                            System.out.println("lat=" + eso.get("latitude").get() + ",lng=" + eso.get("longitude").get());
+                        } else {
+                            System.out.println(result.get());
+                        }
                     } else {
-                        System.out.println("An error occurred: " + result.getError());
+                        StringBuilder builder = new StringBuilder();
+                        for(StackTraceElement element: result.getError().getStackTrace()){
+                            builder.append(element.toString());
+                            builder.append('\n');
+                        }
+                        //System.out.println("An error occurred: " + result.getError());
+                        System.out.println("An error occurred: " + builder.toString());
                     }
                     break;
                 default:
@@ -124,7 +139,7 @@ public class TextFragment extends Fragment {
         appendMessage(Character.toUpperCase(command.charAt(0)) + rightPart);
 
         try {
-            Message message = Message.obtain(null, ConnectionService.EVALUATE, command);
+            Message message = Message.obtain(null, MessageCategory.EVALUATE.ordinal(), command);
             message.replyTo = interpretationMessenger;
             serviceMessenger.send(message);
         } catch(Exception e) {

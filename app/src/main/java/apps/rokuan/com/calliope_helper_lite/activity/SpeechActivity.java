@@ -16,6 +16,7 @@ import apps.rokuan.com.calliope_helper_lite.R;
 import apps.rokuan.com.calliope_helper_lite.data.DataContext;
 import apps.rokuan.com.calliope_helper_lite.fragment.TextFragment;
 import apps.rokuan.com.calliope_helper_lite.service.ConnectionService;
+import apps.rokuan.com.calliope_helper_lite.service.MessageCategory;
 
 
 public class SpeechActivity extends AppCompatActivity {
@@ -25,7 +26,7 @@ public class SpeechActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             serviceMessenger = new Messenger(iBinder);
-            Message registerMessage = Message.obtain(null, ConnectionService.REGISTER_CONTEXT, data);
+            Message registerMessage = Message.obtain(null, MessageCategory.REGISTER_CONTEXT.ordinal(), data);
             try {
                 serviceMessenger.send(registerMessage);
             } catch (RemoteException e) {
@@ -67,7 +68,7 @@ public class SpeechActivity extends AppCompatActivity {
         super.onStop();
         data.stopClient();
         if(bound){
-            Message unregisterMessage = Message.obtain(null, ConnectionService.UNREGISTER_CONTEXT, data);
+            Message unregisterMessage = Message.obtain(null, MessageCategory.UNREGISTER_CONTEXT.ordinal(), data);
             try {
                 serviceMessenger.send(unregisterMessage);
             } catch (RemoteException e) {
