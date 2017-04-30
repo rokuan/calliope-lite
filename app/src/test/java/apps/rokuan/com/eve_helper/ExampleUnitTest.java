@@ -1,4 +1,4 @@
-package apps.rokuan.com.calliope_helper_lite;
+package apps.rokuan.com.eve_helper;
 
 import org.junit.Test;
 
