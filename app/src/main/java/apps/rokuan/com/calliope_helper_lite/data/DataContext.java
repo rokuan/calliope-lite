@@ -16,7 +16,6 @@ import com.ideal.evecore.interpreter.data.EveNumberObject;
 import com.ideal.evecore.interpreter.data.EveObject;
 import com.ideal.evecore.interpreter.data.EveObjectList;
 import com.ideal.evecore.interpreter.data.EveQueryMappingObject;
-import com.ideal.evecore.interpreter.data.EveStringObject;
 import com.ideal.evecore.interpreter.data.EveStructuredObject;
 import com.ideal.evecore.util.Option;
 import com.ideal.evecore.util.Pair;

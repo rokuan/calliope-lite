@@ -12,6 +12,7 @@ import android.os.RemoteException;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 
+
 import apps.rokuan.com.calliope_helper_lite.R;
 import apps.rokuan.com.calliope_helper_lite.data.DataContext;
 import apps.rokuan.com.calliope_helper_lite.fragment.TextFragment;
@@ -26,9 +27,9 @@ public class SpeechActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             serviceMessenger = new Messenger(iBinder);
-            Message registerMessage = Message.obtain(null, MessageCategory.REGISTER_CONTEXT.ordinal(), data);
+            Message registerLocationContext = Message.obtain(null, MessageCategory.REGISTER_CONTEXT.ordinal(), data);
             try {
-                serviceMessenger.send(registerMessage);
+                serviceMessenger.send(registerLocationContext);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -68,9 +69,9 @@ public class SpeechActivity extends AppCompatActivity {
         super.onStop();
         data.stopClient();
         if(bound){
-            Message unregisterMessage = Message.obtain(null, MessageCategory.UNREGISTER_CONTEXT.ordinal(), data);
+            Message unregisterLocationContext = Message.obtain(null, MessageCategory.UNREGISTER_CONTEXT.ordinal(), data);
             try {
-                serviceMessenger.send(unregisterMessage);
+                serviceMessenger.send(unregisterLocationContext);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -80,20 +81,6 @@ public class SpeechActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed(){
-        /*if(getSupportFragmentManager().getBackStackEntryCount() == 1) {
-            new AlertDialog.Builder(this)
-                    .setMessage(R.string.exit_activity)
-                    .setCancelable(false)
-                    .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            finish();
-                        }
-                    })
-                    .setNegativeButton(R.string.no, null)
-                    .show();
-        } else {
-            super.onBackPressed();
-        }*/
         new AlertDialog.Builder(this)
                 .setMessage(R.string.exit_activity)
                 .setCancelable(false)

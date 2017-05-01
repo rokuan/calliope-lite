@@ -1,25 +1,37 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="#FFFFFF"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center_horizontal">
-    <LinearLayout
-        android:id="@+id/result_frame_content"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginTop="20dp"
-        android:orientation="vertical"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
-        <com.nhaarman.listviewanimations.itemmanipulation.DynamicListView
-            android:id="@+id/messages"
-            android:padding="5dp"
-            android:divider="@null"
+        <LinearLayout
+            android:id="@+id/result_frame_content"
+            android:visibility="invisible"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </LinearLayout>
+            android:layout_height="match_parent">
+            <com.nhaarman.listviewanimations.itemmanipulation.DynamicListView
+                android:id="@+id/messages"
+                android:padding="5dp"
+                android:divider="@null"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </LinearLayout>
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context="com.ideal.apps.ici.SpeechActivity" />
+    </FrameLayout>
     <LinearLayout
         android:id="@+id/text_frame"
         android:visibility="visible"
@@ -27,8 +39,15 @@
         android:padding="@dimen/form_padding"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+        <!-- <EditText
+            android:id="@+id/input_command"
+            android:text="quelle est la position"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" /> -->
         <EditText
             android:id="@+id/input_command"
+            android:text="affiche la position"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1" />

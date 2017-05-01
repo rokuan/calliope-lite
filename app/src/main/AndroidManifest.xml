@@ -13,6 +13,10 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyD_bwZvRUZbZHxuV3F9iOx69aXkWaWWCNg" />
         <!-- <activity
             android:name=".activity.LoadingActivity"
             android:label="@string/app_name"

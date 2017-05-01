@@ -3,7 +3,12 @@ package apps.rokuan.com.calliope_helper_lite.data;
 import android.content.Context;
 import android.content.res.AssetManager;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.ideal.evecore.common.Mapping;
 import com.ideal.evecore.interpreter.data.EveBooleanObject;
 import com.ideal.evecore.interpreter.data.EveNumberObject;
@@ -20,13 +25,16 @@ import com.ideal.evecore.util.Result;
 import java.io.IOException;
 import java.io.InputStream;
 
+
 /**
  * Created by chris on 21/03/2017.
  */
 
-public class MapReceiver implements Receiver {
+public class MapReceiver implements Receiver, OnMapReadyCallback {
     private Context context;
     private Mapping<ValueMatcher> mappings = new Mapping<ValueMatcher>();
+    private GoogleMap mMap;
+    private Marker myMarker;
 
     public MapReceiver(Context c){
         context = c;
@@ -58,7 +66,7 @@ public class MapReceiver implements Receiver {
 
             if (eveType.isDefined()) {
                 String t = ((EveStringObject) eveType.get()).getValue();
-                if ("location".equals(t)) {
+                if ("location".equalsIgnoreCase(t)) {
                     target = what;
                 }
             }
@@ -69,8 +77,7 @@ public class MapReceiver implements Receiver {
 
             double latitude = ((EveNumberObject) target.get("latitude").get()).getValue().doubleValue();
             double longitude = ((EveNumberObject) target.get("longitude").get()).getValue().doubleValue();
-            LatLng location = new LatLng(latitude, longitude);
-            // TODO: display the location on the map
+            displayNewLocation(latitude, longitude);
             return Result.<EveObject>ok(new EveBooleanObject(true));
         } catch (Exception e) {
             return Result.ko(e);
@@ -98,5 +105,28 @@ public class MapReceiver implements Receiver {
             return ((MapReceiver)o).getReceiverName().equals(getReceiverName());
         }
         return false;
+    }
+
+    protected void displayNewLocation(double latitude, double longitude) {
+        if (mMap == null) {
+            return;
+        }
+
+        if (myMarker != null) {
+            myMarker.remove();
+        }
+
+        LatLng position = new LatLng(latitude, longitude);
+        myMarker = mMap.addMarker(new MarkerOptions().position(position)
+                //.title(context.getString(R.string.my_location))
+                .title("My Location"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 11.0f));
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.setBuildingsEnabled(false);
+        mMap.setIndoorEnabled(false);
     }
 }

@@ -9,13 +9,17 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import com.google.android.gms.maps.SupportMapFragment;
+import com.ideal.evecore.interpreter.data.EveNumberObject;
 import com.ideal.evecore.interpreter.data.EveObject;
 import com.ideal.evecore.interpreter.data.EveStructuredObject;
 import com.ideal.evecore.util.Result;
@@ -25,6 +29,7 @@ import com.nhaarman.listviewanimations.itemmanipulation.DynamicListView;
 import java.util.ArrayList;
 
 import apps.rokuan.com.calliope_helper_lite.R;
+import apps.rokuan.com.calliope_helper_lite.data.MapReceiver;
 import apps.rokuan.com.calliope_helper_lite.service.ConnectionService;
 import apps.rokuan.com.calliope_helper_lite.service.MessageCategory;
 import butterknife.Bind;
@@ -37,11 +42,19 @@ import butterknife.OnClick;
 
 public class TextFragment extends Fragment {
     private boolean bound = false;
+    protected MapReceiver map;
+
     private Messenger serviceMessenger;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             serviceMessenger = new Messenger(service);
+            Message registerMapReceiver = Message.obtain(null, MessageCategory.REGISTER_RECEIVER.ordinal(), map);
+            try {
+                serviceMessenger.send(registerMapReceiver);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
             bound = true;
         }
 
@@ -63,7 +76,9 @@ public class TextFragment extends Fragment {
                         if (result.get() instanceof EveStructuredObject) {
                             System.out.println(result.get());
                             EveStructuredObject eso = (EveStructuredObject) result.get();
-                            System.out.println("lat=" + eso.get("latitude").get() + ",lng=" + eso.get("longitude").get());
+                            double latitude = ((EveNumberObject)eso.get("latitude").get()).getValue().doubleValue();
+                            double longitude = ((EveNumberObject)eso.get("longitude").get()).getValue().doubleValue();
+                            Log.d("EveHelper - Location", "lat=" + latitude + ",lng=" + longitude);
                         } else {
                             System.out.println(result.get());
                         }
@@ -110,6 +125,16 @@ public class TextFragment extends Fragment {
     }
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        map = new MapReceiver(getActivity());
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(map);
+    }
+
+    @Override
     public void onStart() {
         super.onStart();
         Intent serviceIntent = new Intent(this.getActivity().getApplicationContext(), ConnectionService.class);
@@ -120,6 +145,12 @@ public class TextFragment extends Fragment {
     public void onStop() {
         super.onStop();
         if(bound){
+            Message unregisterMapReceiver = Message.obtain(null, MessageCategory.UNREGISTER_RECEIVER.ordinal(), map);
+            try {
+                serviceMessenger.send(unregisterMapReceiver);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
             this.getActivity().unbindService(serviceConnection);
         }
     }
