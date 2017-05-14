@@ -12,13 +12,10 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.ideal.evecore.interpreter.Context;
 import com.ideal.evecore.interpreter.QuerySource;
-import com.ideal.evecore.interpreter.data.EveNumberObject;
 import com.ideal.evecore.interpreter.data.EveObject;
 import com.ideal.evecore.interpreter.data.EveObjectList;
-import com.ideal.evecore.interpreter.data.EveQueryMappingObject;
 import com.ideal.evecore.interpreter.data.EveStructuredObject;
 import com.ideal.evecore.util.Option;
-import com.ideal.evecore.util.Pair;
 import com.ideal.evecore.util.Transformer;
 
 import java.util.UUID;
@@ -109,9 +106,7 @@ public class DataContext implements Context, QuerySource, GoogleApiClient.Connec
             return null;
         }
 
-        return new EveQueryMappingObject(MY_LOCATION_ID,
-                new Pair("latitude", new EveNumberObject(currentLocation.getLatitude())),
-                new Pair("longitude", new EveNumberObject(currentLocation.getLongitude())));
+        return new EveQueryLocationObject(MY_LOCATION_ID, currentLocation.getLatitude(), currentLocation.getLongitude());
     }
 
     @Override

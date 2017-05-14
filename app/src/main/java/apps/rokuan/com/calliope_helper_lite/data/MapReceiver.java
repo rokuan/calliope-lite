@@ -2,6 +2,7 @@ package apps.rokuan.com.calliope_helper_lite.data;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.os.Handler;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -31,6 +32,8 @@ import java.io.InputStream;
  */
 
 public class MapReceiver implements Receiver, OnMapReadyCallback {
+    private final Handler handler = new Handler();
+
     private Context context;
     private Mapping<ValueMatcher> mappings = new Mapping<ValueMatcher>();
     private GoogleMap mMap;
@@ -61,23 +64,25 @@ public class MapReceiver implements Receiver, OnMapReadyCallback {
     public Result<EveObject> handleMessage(EveObjectMessage message) {
         try {
             EveStructuredObject what = (EveStructuredObject) message.getContent().get("what").get();
-            Option<EveObject> eveType = what.get("eve_type");
+            String type = what.getType();
             EveStructuredObject target = null;
 
-            if (eveType.isDefined()) {
-                String t = ((EveStringObject) eveType.get()).getValue();
-                if ("location".equalsIgnoreCase(t)) {
-                    target = what;
-                }
+            if ("location".equalsIgnoreCase(type)) {
+                target = what;
             }
 
             if (target == null) {
                 target = (EveStructuredObject) what.get("location");
             }
 
-            double latitude = ((EveNumberObject) target.get("latitude").get()).getValue().doubleValue();
-            double longitude = ((EveNumberObject) target.get("longitude").get()).getValue().doubleValue();
-            displayNewLocation(latitude, longitude);
+            final double latitude = ((EveNumberObject) target.get("latitude").get()).getValue().doubleValue();
+            final double longitude = ((EveNumberObject) target.get("longitude").get()).getValue().doubleValue();
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    displayNewLocation(latitude, longitude);
+                }
+            });
             return Result.<EveObject>ok(new EveBooleanObject(true));
         } catch (Exception e) {
             return Result.ko(e);
